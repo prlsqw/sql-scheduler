@@ -1,0 +1,11 @@
+# ignore vscode settings and macOS files
+.vscode/
+.DS_Store
+
+
+# ignore object files
+**/*.o
+
+
+# ignore executable files
+lang
