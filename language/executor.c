@@ -101,7 +101,29 @@ void execute_write_at(Dataframe* df, int column_index, int row_index, double val
 }
 
 void execute_count(Dataframe* df, int column_index, int comparison_operator, double value) {
-    printf("Executing COUNT on column %d with comparison operator %c and value %f\n", column_index, comparison_operator, value);
+    if (column_index < 0 || column_index >= df->num_cols) {
+        perror("COUNT Error: Column index out of range");
+        exit(1);
+    }
+    
+    // seek to beginning of file
+    fseek(df->file, 0, SEEK_SET);
+    
+    // ignore the header row
+    next_line(df->file);
+
+    // for each column, find the column_index-th comma
+    char buffer[MAX_CELL_LENGTH];
+    int result = 0;
+
+    // in each row, find the value at column_index
+    for (int i = 0; i < df->num_rows - 1; i++) {
+        read_value_at_column(df->file, column_index, buffer);
+        result += compare(atof(buffer), comparison_operator, value);
+        next_line(df->file);
+    }
+
+    printf("COUNT(%d, %c, %f): %d\n", column_index, (char)comparison_operator, value, result);
 }
 
 void cleanup(Dataframe* df) {
