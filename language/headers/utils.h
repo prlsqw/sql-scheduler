@@ -42,3 +42,14 @@ void read_value_at_column(FILE* file, int column_index, char* buffer);
  * Move the cursor of the file to right after \n or EOF, whichever comes first
  */
 void next_line(FILE* file);
+
+
+/**
+ * compare two double values using the given comparison operator
+ *
+ * \param a   first value
+ * \param op  comparison operator
+ * \param b   second value
+ * \return    result of the comparison
+ */
+int compare(double a, char op, double b);

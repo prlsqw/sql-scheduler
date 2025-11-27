@@ -90,3 +90,25 @@ void next_line(FILE* file) {
         ch = fgetc(file);
     }
 }
+
+/**
+ * Compare two double values using the given comparison operator
+ *
+ * \param a   first value
+ * \param op  comparison operator (<, <= as l, != as !, == as =, >= as g, >)
+ * \param b   second value
+ * \return    result of the comparison
+ */
+int compare(double a, int op, double b) {
+    switch (op) {
+        case '<':  return a < b;
+        case 'l':  return a <= b; 
+        case '!':  return a != b;
+        case '=':  return a == b;
+        case 'g':  return a >= b;
+        case '>':  return a > b;
+        default:
+            perror("Comparison Error: Unknown comparison operator");
+            exit(1);
+    }
+}
