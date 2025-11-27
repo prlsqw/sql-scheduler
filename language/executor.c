@@ -1,7 +1,9 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+
 #include "headers/executor.h"
+#include "headers/utils.h"
 
 void initialize(Dataframe* df, const char* file_path) {
     df->file = fopen(file_path, "r");
@@ -54,7 +56,32 @@ void execute(Dataframe* df, Query* query) {
 }
 
 void execute_average(Dataframe* df, int column_index) {
-    printf("Executing AVERAGE on column %d\n", column_index);
+    // sanity check
+    if (column_index < 0 || column_index >= df->num_cols) {
+        perror("AVERAGE Error: Column index out of range");
+        exit(1);
+    }
+    
+    // seek to beginning of file
+    // Citation: https://man7.org/linux/man-pages/man3/fseek.3.html
+    fseek(df->file, 0, SEEK_SET);
+    
+    // ignore the header row
+    next_line(df->file);
+
+    // for each column, find the column_index-th comma
+    // store the value after that comma in a buffer
+    char buffer[MAX_CELL_LENGTH];
+    double result = 0.0;
+
+    // in each row, find the value at column_index
+    for (int i = 0; i < df->num_rows - 1; i++) {
+        read_value_at_column(df->file, column_index, buffer);
+        result += atof(buffer);
+        next_line(df->file);
+    }
+
+    printf("AVERAGE(%d): %f\n", column_index, result / (df->num_rows - 1));
 }
 
 void execute_median(Dataframe* df, int column_index) {
