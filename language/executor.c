@@ -29,6 +29,11 @@ void initialize(Dataframe* df, const char* file_path) {
 }
 
 void execute(Dataframe* df, Query* query) {
+    if (df->file == NULL) {
+        perror("Execute Error: Dataframe not initialized");
+        exit(1);
+    }
+
     switch (query->operation) {
         case AVERAGE:
             return execute_average(df, query->column_index);
