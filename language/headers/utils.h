@@ -25,3 +25,31 @@ char* ltrim(char* str);
  * \param str string to trim
  */
 void rtrim(char* str);
+
+
+/**
+ * Read the value between the column_index-th and (column_index + 1)-th comma of
+ * the current line in the given file
+ *
+ * \param file         file pointer to read from
+ * \param column_index index of the column to read
+ * \param buffer       buffer to store the read value
+ */
+void read_value_at_column(FILE* file, int column_index, char* buffer);
+
+
+/**
+ * Move the cursor of the file to right after \n or EOF, whichever comes first
+ */
+void next_line(FILE* file);
+
+
+/**
+ * compare two double values using the given comparison operator
+ *
+ * \param a   first value
+ * \param op  comparison operator
+ * \param b   second value
+ * \return    result of the comparison
+ */
+int compare(double a, char op, double b);

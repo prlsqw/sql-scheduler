@@ -1,16 +1,35 @@
-
 #include "parser.h"
 
-void execute(Query* query);
+#include <stdio.h>
+#include <string.h>
+#include <stdlib.h>
 
-void execute_average(int column_index);
+typedef struct {
+    // number of rows in the dataframe
+    int num_rows;
 
-void execute_median(int column_index);
+    // number of columns in the dataframe
+    int num_cols;
 
-void execute_increment(int column_index, int value);
+    // file descriptor for the opened CSV file
+    FILE* file;
 
-void execute_write(int column_index, int value);
+} Dataframe;
 
-void execute_write_at(int column_index, int row_index, double value);
+void initialize(Dataframe* df, const char* file_path);
 
-void execute_count(int column_index, int comparison_operator, double value);
+void execute(Dataframe* df, Query* query);
+
+void execute_average(Dataframe* df, int column_index);
+
+void execute_median(Dataframe* df, int column_index);
+
+void execute_increment(Dataframe* df, int column_index, int value);
+
+void execute_write(Dataframe* df, int column_index, int value);
+
+void execute_write_at(Dataframe* df, int column_index, int row_index, double value);
+
+void execute_count(Dataframe* df, int column_index, int comparison_operator, double value);
+
+void cleanup(Dataframe* df);

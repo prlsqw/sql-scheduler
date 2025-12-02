@@ -53,3 +53,62 @@ void rtrim(char* str) {
     }
     str[i + 1] = '\0';
 }
+
+/**
+ * Read the value between the column_index-th and (column_index + 1)-th comma
+ * of the current line in the given file
+ *
+ * \param file         file pointer to read from
+ * \param column_index index of the column to read
+ * \param buffer       buffer to store the read value (should have at least 
+ *                      MAX_CELL_LENGTH capacity)
+ */
+void read_value_at_column(FILE* file, int column_index, char* buffer) {
+    // find the column_index-th comma
+    char ch = fgetc(file);
+    while (ch != EOF && column_index > 0) {
+        if (ch == ',') column_index--;
+        ch = fgetc(file);
+    }
+
+    // read until the next comma or end of line
+    int buf_index = 0;
+    while (ch != EOF && ch != ',' && ch != '\n') {
+        buffer[buf_index++] = ch;
+        ch = fgetc(file);
+    }
+
+    buffer[buf_index] = '\0';
+}
+
+/**
+ * Move the cursor of the file to right after \n or EOF, whichever comes first
+ */
+void next_line(FILE* file) {
+    char ch = fgetc(file);
+    while (ch != '\n' && ch != EOF) {
+        ch = fgetc(file);
+    }
+}
+
+/**
+ * Compare two double values using the given comparison operator
+ *
+ * \param a   first value
+ * \param op  comparison operator (<, <= as l, != as !, == as =, >= as g, >)
+ * \param b   second value
+ * \return    result of the comparison
+ */
+int compare(double a, int op, double b) {
+    switch (op) {
+        case '<':  return a < b;
+        case 'l':  return a <= b; 
+        case '!':  return a != b;
+        case '=':  return a == b;
+        case 'g':  return a >= b;
+        case '>':  return a > b;
+        default:
+            perror("Comparison Error: Unknown comparison operator");
+            exit(1);
+    }
+}

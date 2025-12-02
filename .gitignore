@@ -9,3 +9,7 @@
 
 # ignore executable files
 lang
+
+
+# ignore data files for now, since might be too big
+data/*.csv
