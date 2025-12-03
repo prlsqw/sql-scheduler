@@ -26,9 +26,9 @@ void execute_average(Dataframe* df, int column_index);
 
 void execute_median(Dataframe* df, int column_index);
 
-void execute_increment(Dataframe* df, int column_index, int value);
+void execute_increment(Dataframe* df, int column_index, double value);
 
-void execute_write(Dataframe* df, int column_index, int value);
+void execute_write(Dataframe* df, int column_index, double value);
 
 void execute_write_at(Dataframe* df, int column_index, int row_index, double value);
 

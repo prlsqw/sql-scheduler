@@ -54,9 +54,9 @@ void execute(Dataframe* df, Query* query) {
         case WRITE:
             return execute_write(df, query->column_index, query->arg1);
         case WRITE_AT:
-            return execute_write_at(df, query->column_index, query->arg1, query->arg2);
+            return execute_write_at(df, query->column_index, (int)query->arg1, query->arg2);
         case COUNT:
-            return execute_count(df, query->column_index, query->arg1, query->arg2);
+            return execute_count(df, query->column_index, (char)((int)query->arg1), query->arg2);
         default:
             perror("Execute Error: Unknown operation");
             exit(1);
@@ -96,12 +96,12 @@ void execute_median(Dataframe* df, int column_index) {
     printf("Executing MEDIAN on column %d\n", column_index);
 }
 
-void execute_increment(Dataframe* df, int column_index, int value) {
-    printf("Executing INCREMENT on column %d by %d\n", column_index, value);
+void execute_increment(Dataframe* df, int column_index, double value) {
+    printf("Executing INCREMENT on column %d by %f\n", column_index, value);
 }
 
-void execute_write(Dataframe* df, int column_index, int value) {
-    printf("Executing WRITE on column %d with value %d\n", column_index, value);
+void execute_write(Dataframe* df, int column_index, double value) {
+    printf("Executing WRITE on column %d with value %f\n", column_index, value);
 }
 
 void execute_write_at(Dataframe* df, int column_index, int row_index, double value) {
