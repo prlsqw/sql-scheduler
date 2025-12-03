@@ -14,7 +14,7 @@ void initialize(Dataframe* df, const char* file_path) {
 
     df->num_rows = 1;
     df->num_cols = 1;
-    df->cell_length = 1;
+    df->cell_length = 0;
     
     // num cols is the (number of ',' in line 1) + 1
     while (1) {
@@ -23,8 +23,7 @@ void initialize(Dataframe* df, const char* file_path) {
         if (ch == ',') df->num_cols++; 
     }
 
-    // cell_length is the number of characters in the first cell + 1
-    // (for null terminator when reading)
+    // cell_length is the number of characters in the first cell
     while (1) {
         char ch = fgetc(df->file);
         if (ch == ',' || ch == '\n' || ch == EOF) break;
@@ -80,7 +79,7 @@ void execute_average(Dataframe* df, int column_index) {
 
     // for each column, find the column_index-th comma
     // store the value after that comma in a buffer
-    char buffer[df->cell_length];
+    char buffer[df->cell_length + 1];
     double result = 0.0;
 
     // in each row, find the value at column_index
@@ -122,7 +121,7 @@ void execute_count(Dataframe* df, int column_index, int comparison_operator, dou
     next_line(df->file);
 
     // for each column, find the column_index-th comma
-    char buffer[df->cell_length];
+    char buffer[df->cell_length + 1];
     int result = 0;
 
     // in each row, find the value at column_index
