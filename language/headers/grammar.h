@@ -21,10 +21,6 @@ The grammar of this DSL is defined as:
            | COUNT     (COL, CMP, FLT)
 */
 
-// maximum length of a double
-// Citation: https://stackoverflow.com/a/1701272
-#define MAX_DOUBLE_LENGTH 1080
-
 // the following operations are allowed, none implies parse error
 typedef enum {
     AVERAGE, MEDIAN, INCREMENT, WRITE, WRITE_AT, COUNT, NONE
