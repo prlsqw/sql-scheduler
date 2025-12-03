@@ -63,4 +63,27 @@ int compare(double a, char op, double b);
  * \param row     row index to move to (0-indexed)
  * \param col     column index to move to (0-indexed)
  */
-void move_to(Dataframe* df, int row, int col, int row_width);
+void move_to(Dataframe* df, int row, int col);
+
+
+/**
+ * Read the value at the given (row, col) position in the file
+ * 
+ * \param df      dataframe whose file pointer to read from
+ * \param row     row index to read from (0-indexed)
+ * \param col     column index to read from (0-indexed)
+ * \param buffer  buffer to store the read value (should have enough space
+ *                 i.e, determined by df->cell_length)
+ */
+void read_at(Dataframe* df, int row, int col, char* buffer);
+
+
+/**
+ * Write the value at the given (row, col) position in the file
+ * 
+ * \param df     dataframe whose file pointer to read from
+ * \param row    row index to read from (0-indexed)
+ * \param col    column index to read from (0-indexed)
+ * \param value  value to write (should be df->cell_length sized)
+ */
+void write_at(Dataframe* df, int row, int col, char* value);
