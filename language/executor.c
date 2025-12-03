@@ -105,6 +105,45 @@ void execute_write(Dataframe* df, int column_index, int value) {
 }
 
 void execute_write_at(Dataframe* df, int column_index, int row_index, double value) {
+    if (column_index < 0 || column_index >= df->num_cols) {
+        perror("COUNT Error: Column index out of range");
+        exit(1);
+    }
+    
+    if (row_index < 0 || row_index >= df->num_rows) {
+        perror("COUNT Error: Row index out of range");
+        exit(1);
+    }
+    // clip first
+    
+    sprintf(str_double, "%*lf", df->cell_size, value);
+
+    int loc_col_ind = column_index;
+    // seek to beginning of file
+    fseek(df->file, 0, SEEK_SET);
+    
+    // move cursor to correct row
+    // <= since first row is header row
+    for (int i = 0; i <= row_index; i++) {
+        next_line(df->file);
+    }
+
+    // find the column_index-th comma
+    char ch = fgetc(df->file);
+    while (ch != EOF && loc_col_ind > 0) {
+        if (ch == ',') loc_col_ind--;
+        ch = fgetc(df->file);
+    }
+
+    // write until the next comma or end of line
+    int buf_index = 0;
+    while (ch != EOF && ch != ',' && ch != '\n') {
+        buffer[buf_index++] = ch;
+        ch = fgetc(file);
+    }
+
+    buffer[buf_index] = '\0';
+
     printf("Executing WRITE_AT on column %d at row %d with value %f\n", column_index, row_index, value);
 }
 
