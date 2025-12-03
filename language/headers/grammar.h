@@ -15,8 +15,8 @@ Let CMP = < | <= | ! | = | >= | >.
 The grammar of this DSL is defined as:
     QUERY := AVERAGE   (COL) 
            | MEDIAN    (COL) 
-           | INCREMENT (COL, INT) 
-           | WRITE     (COL, INT) 
+           | INCREMENT (COL, FLT) 
+           | WRITE     (COL, FLT) 
            | WRITE_AT  (COL, INT, FLT)
            | COUNT     (COL, CMP, FLT)
 */
@@ -37,10 +37,11 @@ typedef struct {
 
     // second argument is either:
     // - -1 (to indicate query does not have this arg)
-    // - integer value (for INCREMENT, WRITE, WRITE_AT)
+    // - integer value (for WRITE_AT)
     // - char value (for COUNT)
-    // so, can be stored as an integer
-    int arg1;
+    // - float value (for INCREMENT, WRITE)
+    // so, can be stored as a double and interpreted accordingly
+    double arg1;
 
     // third argument is either:
     // - -1.0
