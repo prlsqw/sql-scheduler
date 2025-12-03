@@ -115,8 +115,11 @@ void execute_write_at(Dataframe* df, int column_index, int row_index, double val
         exit(1);
     }
     // clip first
+    // atof
     
-    sprintf(str_double, "%*lf", df->cell_size, value);
+    //
+
+    // sprintf(str_double, "%*lf", df->cell_size, value);
 
     int loc_col_ind = column_index;
     // seek to beginning of file
@@ -134,6 +137,9 @@ void execute_write_at(Dataframe* df, int column_index, int row_index, double val
         if (ch == ',') loc_col_ind--;
         ch = fgetc(df->file);
     }
+
+    // // for each column, find the column_index-th comma
+    // char buffer[MAX_CELL_LENGTH];
 
     // write until the next comma or end of line
     int buf_index = 0;
