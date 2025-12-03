@@ -53,3 +53,14 @@ void next_line(FILE* file);
  * \return    result of the comparison
  */
 int compare(double a, char op, double b);
+
+
+/**
+ * Move the cursor of the dataframe file to the row-th row
+ * and col-th column in dataframe
+ * 
+ * \param df      dataframe whose file cursor to move
+ * \param row     row index to move to (0-indexed)
+ * \param col     column index to move to (0-indexed)
+ */
+void move_to(Dataframe* df, int row, int col, int row_width);

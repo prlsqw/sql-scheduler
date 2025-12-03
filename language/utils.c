@@ -2,6 +2,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "headers/utils.h"
+#include "headers/executor.h"
+
 /**
  * Split the given string at the first occurence of the given character
  * by replacing it with a null terminator. Throws an error if the character
@@ -111,4 +114,21 @@ int compare(double a, char op, double b) {
             perror("Comparison Error: Unknown comparison operator");
             exit(1);
     }
+}
+
+/**
+ * Move the cursor of the dataframe file to the row-th row
+ * and col-th column in dataframe
+ * 
+ * \param df      dataframe whose file cursor to move
+ * \param row     row index to move to (0-indexed)
+ * \param col     column index to move to (0-indexed)
+ */
+void move_to(Dataframe* df, int row, int col, int row_width) {
+    // need to:
+    // - skip header row (header_length characters)
+    // - skip `row` rows (row_width characters each)
+    // - skip (col * (cell_length + 1)) characters in the target row
+    int position = df->header_length + (row * row_width) + (col * (df->cell_length + 1));
+    fseek(df->file, position, SEEK_SET);
 }
