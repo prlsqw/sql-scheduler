@@ -99,7 +99,7 @@ void next_line(FILE* file) {
  * \param b   second value
  * \return    result of the comparison
  */
-int compare(double a, int op, double b) {
+int compare(double a, char op, double b) {
     switch (op) {
         case '<':  return a < b;
         case 'l':  return a <= b; 
