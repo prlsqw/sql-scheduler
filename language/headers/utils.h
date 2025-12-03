@@ -1,3 +1,5 @@
+#include "executor.h"
+
 /**
  * Split the given string at the first occurence of the given character
  * by replacing it with a null terminator. Throws an error if the character

@@ -22,6 +22,9 @@ The grammar of this DSL is defined as:
 */
 
 // the following operations are allowed, none implies parse error
+#ifndef GRAMMAR_H
+#define GRAMMAR_H 1
+
 typedef enum {
     AVERAGE, MEDIAN, INCREMENT, WRITE, WRITE_AT, COUNT, NONE
 } Operation;
@@ -49,3 +52,4 @@ typedef struct {
     double arg2;
 } Query;
 
+#endif

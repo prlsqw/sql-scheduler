@@ -1,3 +1,6 @@
+#ifndef EXECUTOR_H
+#define EXECUTOR_H 1
+
 #include "parser.h"
 
 #include <stdio.h>
@@ -41,3 +44,5 @@ void execute_write_at(Dataframe* df, int column_index, int row_index, double val
 void execute_count(Dataframe* df, int column_index, int comparison_operator, double value);
 
 void cleanup(Dataframe* df);
+
+#endif
