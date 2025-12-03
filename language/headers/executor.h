@@ -14,6 +14,8 @@ typedef struct {
     // file descriptor for the opened CSV file
     FILE* file;
 
+    // df enforces fixed-length cells
+    int cell_length;
 } Dataframe;
 
 void initialize(Dataframe* df, const char* file_path);
