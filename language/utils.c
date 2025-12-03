@@ -164,5 +164,8 @@ void read_at(Dataframe* df, int row, int col, char* buffer) {
  */
 void write_at(Dataframe* df, int row, int col, char* value) {
     move_to(df, row, col);
+
+    // Citation: https://www.tutorialspoint.com/c_standard_library/c_function_fflush.htm
     fwrite(value, sizeof(char), df->cell_length, df->file);
+    fflush(df->file);
 }
