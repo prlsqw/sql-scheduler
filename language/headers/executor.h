@@ -16,6 +16,9 @@ typedef struct {
 
     // df enforces fixed-length cells
     int cell_length;
+
+    // header row length in characters
+    int header_length;
 } Dataframe;
 
 void initialize(Dataframe* df, const char* file_path);

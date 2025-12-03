@@ -15,10 +15,14 @@ void initialize(Dataframe* df, const char* file_path) {
     df->num_rows = 1;
     df->num_cols = 1;
     df->cell_length = 0;
+    df->header_length = 0;
     
     // num cols is the (number of ',' in line 1) + 1
+    // header_length is the number of characters in line 1
     while (1) {
         char ch = fgetc(df->file);
+        df->header_length++;
+
         if (ch == '\n' || ch == EOF) break;
         if (ch == ',') df->num_cols++; 
     }
