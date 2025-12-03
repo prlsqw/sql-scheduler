@@ -61,7 +61,7 @@ void rtrim(char* str) {
  * \param file         file pointer to read from
  * \param column_index index of the column to read
  * \param buffer       buffer to store the read value (should have at least 
- *                      MAX_CELL_LENGTH capacity)
+ *                      df->cell_length capacity)
  */
 void read_value_at_column(FILE* file, int column_index, char* buffer) {
     // find the column_index-th comma
