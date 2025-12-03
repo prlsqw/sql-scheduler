@@ -6,7 +6,7 @@
 #include "headers/utils.h"
 
 void initialize(Dataframe* df, const char* file_path) {
-    df->file = fopen(file_path, "r");
+    df->file = fopen(file_path, "r+");
     if (df->file == NULL) {
         perror("Error opening file");
         exit(1);
