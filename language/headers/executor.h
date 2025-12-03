@@ -19,6 +19,9 @@ typedef struct {
 
     // header row length in characters
     int header_length;
+
+    // row width in characters (including commas and newline)
+    int row_width;
 } Dataframe;
 
 void initialize(Dataframe* df, const char* file_path);
