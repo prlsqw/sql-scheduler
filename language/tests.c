@@ -24,6 +24,7 @@ int main() {
     };
 
     // test utility funcs
+    printf("Current time: %ld\n", now());
     char buffer[19];
     read_at(&df, 2, 3, buffer);
     printf("Value at (row 2, col 3): %s\n", buffer);
@@ -33,10 +34,20 @@ int main() {
     printf("New value at (row 2, col 3): %s\n\n", buffer);
 
 
-    for (int i = 0; i < 6; i++) {
-        Query query;
+    // test average with time slicing
+    ExecutionState state = { .status = CREATED };
+    Query query;
+    parse(queries[0], &query);
+
+    while (state.status != COMPLETED) {
+        // 100 millisecond time slice each time
+        printf("Resuming AVERAGE execution...\n");
+        execute(&df, &query, &state, 100);
+    }
+
+    for (int i = 1; i < 6; i++) {
         parse(queries[i], &query);
-        execute(&df, &query);
+        execute(&df, &query, &state, 1);
     }
 
     cleanup(&df);
