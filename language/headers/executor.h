@@ -48,15 +48,15 @@ void execute(Dataframe* df, Query* query, ExecutionState* state, time_t timeout)
 
 void execute_average(Dataframe* df, int column_index, ExecutionState* state, time_t timeout);
 
-void execute_median(Dataframe* df, int column_index);
+void execute_median(Dataframe* df, int column_index, ExecutionState* state, time_t timeout);
 
-void execute_increment(Dataframe* df, int column_index, double value);
+void execute_increment(Dataframe* df, int column_index, double value, ExecutionState* state, time_t timeout);
 
-void execute_write(Dataframe* df, int column_index, double value);
+void execute_write(Dataframe* df, int column_index, double value, ExecutionState* state, time_t timeout);
 
-void execute_write_at(Dataframe* df, int column_index, int row_index, double value);
+void execute_write_at(Dataframe* df, int column_index, int row_index, double value, ExecutionState* state, time_t timeout);
 
-void execute_count(Dataframe* df, int column_index, int comparison_operator, double value);
+void execute_count(Dataframe* df, int column_index, int comparison_operator, double value, ExecutionState* state, time_t timeout);
 
 void cleanup(Dataframe* df);
 
