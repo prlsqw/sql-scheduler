@@ -1,3 +1,6 @@
+#ifndef EXECUTOR_H
+#define EXECUTOR_H 1
+
 #include "parser.h"
 
 #include <stdio.h>
@@ -16,6 +19,12 @@ typedef struct {
 
     // df enforces fixed-length cells
     int cell_length;
+
+    // header row length in characters
+    int header_length;
+
+    // row width in characters (including commas and newline)
+    int row_width;
 } Dataframe;
 
 void initialize(Dataframe* df, const char* file_path);
@@ -35,3 +44,5 @@ void execute_write_at(Dataframe* df, int column_index, int row_index, double val
 void execute_count(Dataframe* df, int column_index, int comparison_operator, double value);
 
 void cleanup(Dataframe* df);
+
+#endif

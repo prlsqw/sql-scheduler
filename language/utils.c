@@ -2,6 +2,9 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "headers/utils.h"
+#include "headers/executor.h"
+
 /**
  * Split the given string at the first occurence of the given character
  * by replacing it with a null terminator. Throws an error if the character
@@ -99,7 +102,7 @@ void next_line(FILE* file) {
  * \param b   second value
  * \return    result of the comparison
  */
-int compare(double a, int op, double b) {
+int compare(double a, char op, double b) {
     switch (op) {
         case '<':  return a < b;
         case 'l':  return a <= b; 
@@ -111,4 +114,58 @@ int compare(double a, int op, double b) {
             perror("Comparison Error: Unknown comparison operator");
             exit(1);
     }
+}
+
+/**
+ * Move the cursor of the dataframe file to the row-th row
+ * and col-th column in dataframe
+ * 
+ * \param df      dataframe whose file cursor to move
+ * \param row     row index to move to (0-indexed)
+ * \param col     column index to move to (0-indexed)
+ */
+void move_to(Dataframe* df, int row, int col) {
+    // need to:
+    // - skip header row (header_length characters)
+    // - skip `row` rows (row_width characters each)
+    // - skip (col * (cell_length + 1)) characters in the target row
+    int position = df->header_length + (row * df->row_width) + (col * (df->cell_length + 1));
+    fseek(df->file, position, SEEK_SET);
+}
+
+/**
+ * Read the value at the given (row, col) position in the file
+ * 
+ * \param df      dataframe whose file pointer to read from
+ * \param row     row index to read from (0-indexed)
+ * \param col     column index to read from (0-indexed)
+ * \param buffer  buffer to store the read value (should have enough space
+ *                 i.e, determined by df->cell_length)
+ */
+void read_at(Dataframe* df, int row, int col, char* buffer) {
+    move_to(df, row, col);
+    
+    int buf_index = 0;
+    char ch = fgetc(df->file);
+    while (ch != EOF && ch != ',' && ch != '\n') {
+        buffer[buf_index++] = ch;
+        ch = fgetc(df->file);
+    }
+    buffer[buf_index] = '\0';
+}
+
+/**
+ * Write the value at the given (row, col) position in the file
+ * 
+ * \param df     dataframe whose file pointer to read from
+ * \param row    row index to read from (0-indexed)
+ * \param col    column index to read from (0-indexed)
+ * \param value  value to write (should be df->cell_length sized)
+ */
+void write_at(Dataframe* df, int row, int col, char* value) {
+    move_to(df, row, col);
+
+    // Citation: https://www.tutorialspoint.com/c_standard_library/c_function_fflush.htm
+    fwrite(value, sizeof(char), df->cell_length, df->file);
+    fflush(df->file);
 }

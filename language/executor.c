@@ -6,7 +6,7 @@
 #include "headers/utils.h"
 
 void initialize(Dataframe* df, const char* file_path) {
-    df->file = fopen(file_path, "r");
+    df->file = fopen(file_path, "r+");
     if (df->file == NULL) {
         perror("Error opening file");
         exit(1);
@@ -15,10 +15,14 @@ void initialize(Dataframe* df, const char* file_path) {
     df->num_rows = 1;
     df->num_cols = 1;
     df->cell_length = 0;
+    df->header_length = 0;
     
     // num cols is the (number of ',' in line 1) + 1
+    // header_length is the number of characters in line 1
     while (1) {
         char ch = fgetc(df->file);
+        df->header_length++;
+
         if (ch == '\n' || ch == EOF) break;
         if (ch == ',') df->num_cols++; 
     }
@@ -36,6 +40,12 @@ void initialize(Dataframe* df, const char* file_path) {
         if (ch == EOF) break;
         if (ch == '\n') df->num_rows++;
     }
+
+    df->row_width = (
+        (df->num_cols * df->cell_length) // for each cell
+        + df->num_cols - 1               // for commas
+        + 1                              // for newline at the end
+    );
 }
 
 void execute(Dataframe* df, Query* query) {
