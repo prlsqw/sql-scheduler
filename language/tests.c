@@ -34,21 +34,29 @@ int main() {
     printf("New value at (row 2, col 3): %s\n\n", buffer);
 
 
-    // test average with time slicing
-    ExecutionState state = { .status = CREATED };
-    Query query;
-    parse(queries[0], &query);
+    // test queries with time slicing & context swapping
+    ExecutionState states[6];
+    Query parsed_queries[6];
 
-    while (state.status != COMPLETED) {
-        // 100 millisecond time slice each time
-        printf("Resuming AVERAGE execution...\n");
-        execute(&df, &query, &state, 100);
+    for (int i = 0; i < 6; i++) {
+        states[i].status = CREATED;
+        parse(queries[i], &parsed_queries[i]);
     }
 
-    for (int i = 1; i < 6; i++) {
-        parse(queries[i], &query);
-        execute(&df, &query, &state, 1);
-    }
+    // fair round-robin scheduling until all queries complete
+    time_t timeout = 100; // 100ms per query slice
+    int completed = 0;
+    do {
+        for (int i = 1; i < 6; i++) {
+            // run each query for 100ms
+            if (states[i].status == COMPLETED) continue;
+            
+            execute(&df, &parsed_queries[i], &states[i], timeout);
+            if (states[i].status == COMPLETED) {
+                completed++;
+            }
+        }
+    } while (completed < 6);
 
     cleanup(&df);
     return 0;
