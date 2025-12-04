@@ -3,15 +3,15 @@ import random
 import os
 
 
-def get_padded_random_float():
+def get_padded_random_float(flt_sz=18):
     num = random.uniform(0, 1000)
-    s = f"{num:.15f}"
+    s = f"{num}"
 
-    if len(s) < 18:
-        s += "0" * (18 - len(s))
+    if len(s) < flt_sz:
+        s += "0" * (flt_sz - len(s))
 
-    if len(s) > 18:
-        s = s[:18]
+    if len(s) > flt_sz:
+        s = s[:flt_sz]
     
     return s
 
