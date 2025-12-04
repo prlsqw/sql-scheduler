@@ -172,29 +172,52 @@ void execute_count(
     Dataframe* df, int column_index, int comparison_operator, double value,
     ExecutionState* state, time_t timeout
 ) {
+
+    time_t start_time = now();
+
+    // housekeeping
+    if (state->status == CREATED) {
+        state->status = INPROGRESS;
+        state->stream_position = df->header_length;
+        state->processed_rows = 0;
+        state->tally = 0;
+    }
+
     if (column_index < 0 || column_index >= df->num_cols) {
         perror("COUNT Error: Column index out of range");
         exit(1);
     }
     
-    // seek to beginning of file
-    fseek(df->file, 0, SEEK_SET);
-    
-    // ignore the header row
-    next_line(df->file);
+    // seek to last position in file stream
+    fseek(df->file, state->stream_position, SEEK_SET);
 
     // for each column, find the column_index-th comma
     char buffer[df->cell_length + 1];
-    int result = 0;
 
     // in each row, find the value at column_index
-    for (int i = 0; i < df->num_rows - 1; i++) {
+    while (
+        (state->processed_rows < df->num_rows - 1)
+         && (now() - start_time < timeout)
+    ) {
         read_value_at_column(df->file, column_index, buffer);
-        result += compare(atof(buffer), comparison_operator, value);
+        if (compare(atof(buffer), comparison_operator, value)) {
+            state->tally += 1;
+        }
         next_line(df->file);
+        state->processed_rows++;
     }
 
-    printf("COUNT(%d, %c, %f): %d\n", column_index, (char)comparison_operator, value, result);
+    if (state->processed_rows == df->num_rows - 1) {
+        state->status = COMPLETED;
+    } else {
+        // save position in file stream for next call
+        state->stream_position = ftell(df->file);
+
+        // swap context
+        return;
+    }
+
+    printf("COUNT(%d, %c, %f): %d\n", column_index, (char)comparison_operator, value, (int)state->tally);
 }
 
 void cleanup(Dataframe* df) {
