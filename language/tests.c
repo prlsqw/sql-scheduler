@@ -47,10 +47,10 @@ int main() {
     time_t timeout = 100; // 100ms per query slice
     int completed = 0;
     do {
-        for (int i = 1; i < 6; i++) {
-            // run each query for 100ms
+        for (int i = 0; i < 6; i++) {
             if (states[i].status == COMPLETED) continue;
             
+            // run each query for 100ms
             execute(&df, &parsed_queries[i], &states[i], timeout);
             if (states[i].status == COMPLETED) {
                 completed++;
