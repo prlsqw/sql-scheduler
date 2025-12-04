@@ -48,7 +48,7 @@ void initialize(Dataframe* df, const char* file_path) {
     );
 }
 
-void execute(Dataframe* df, Query* query) {
+void execute(Dataframe* df, Query* query, ExecutionState* state, time_t timeout) {
     if (df->file == NULL) {
         perror("Execute Error: Dataframe not initialized");
         exit(1);
@@ -56,7 +56,7 @@ void execute(Dataframe* df, Query* query) {
 
     switch (query->operation) {
         case AVERAGE:
-            return execute_average(df, query->column_index);
+            return execute_average(df, query->column_index, state, timeout);
         case MEDIAN:
             return execute_median(df, query->column_index);
         case INCREMENT:
@@ -73,33 +73,58 @@ void execute(Dataframe* df, Query* query) {
     }
 }
 
-void execute_average(Dataframe* df, int column_index) {
+void execute_average(
+    Dataframe* df, int column_index, ExecutionState* state, time_t timeout
+) {
+
+    time_t start_time = now();
+
+    // housekeeping if call is the first one
+    if (state->status == CREATED) {
+        state->processed_rows = 0;
+        state->tally = 0.0;
+        state->status = INPROGRESS;
+
+        // position after header row to mark where to start
+        state->stream_position = df->header_length; 
+    }
+    
     // sanity check
     if (column_index < 0 || column_index >= df->num_cols) {
         perror("AVERAGE Error: Column index out of range");
         exit(1);
     }
     
-    // seek to beginning of file
+    // seek to last position in file stream
     // Citation: https://man7.org/linux/man-pages/man3/fseek.3.html
-    fseek(df->file, 0, SEEK_SET);
-    
-    // ignore the header row
-    next_line(df->file);
+    fseek(df->file, state->stream_position, SEEK_SET);
 
     // for each column, find the column_index-th comma
     // store the value after that comma in a buffer
     char buffer[df->cell_length + 1];
-    double result = 0.0;
 
     // in each row, find the value at column_index
-    for (int i = 0; i < df->num_rows - 1; i++) {
+    while (
+        (state->processed_rows < df->num_rows - 1)
+         && (now() - start_time < timeout)
+    ) {
         read_value_at_column(df->file, column_index, buffer);
-        result += atof(buffer);
+        state->tally += atof(buffer);
         next_line(df->file);
+        state->processed_rows++;
     }
 
-    printf("AVERAGE(%d): %f\n", column_index, result / (df->num_rows - 1));
+    if (state->processed_rows == df->num_rows - 1) {
+        state->status = COMPLETED;
+    } else {
+        // save position in file stream for next call
+        state->stream_position = ftell(df->file);
+
+        // swap context
+        return;
+    }
+
+    printf("AVERAGE(%d): %f\n", column_index, state->tally / (df->num_rows - 1));
 }
 
 void execute_median(Dataframe* df, int column_index) {

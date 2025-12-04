@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <sys/time.h>
 
 typedef struct {
     // number of rows in the dataframe
@@ -27,11 +28,25 @@ typedef struct {
     int row_width;
 } Dataframe;
 
+typedef struct {
+    // to keep track of how much work was done previously
+    int processed_rows;
+
+    // intermediate result storage
+    double tally;
+
+    // execution status
+    enum { CREATED, INPROGRESS, COMPLETED } status;
+
+    // position in file stream
+    long stream_position;
+} ExecutionState;
+
 void initialize(Dataframe* df, const char* file_path);
 
-void execute(Dataframe* df, Query* query);
+void execute(Dataframe* df, Query* query, ExecutionState* state, time_t timeout);
 
-void execute_average(Dataframe* df, int column_index);
+void execute_average(Dataframe* df, int column_index, ExecutionState* state, time_t timeout);
 
 void execute_median(Dataframe* df, int column_index);
 
