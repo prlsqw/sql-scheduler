@@ -41,6 +41,7 @@ int main() {
     for (int i = 0; i < 6; i++) {
         states[i].status = CREATED;
         parse(queries[i], &parsed_queries[i]);
+        states[i].query = &parsed_queries[i];
     }
 
     // fair round-robin scheduling until all queries complete
@@ -51,7 +52,7 @@ int main() {
             if (states[i].status == COMPLETED) continue;
             
             // run each query for 100ms
-            execute(&df, &parsed_queries[i], &states[i], timeout);
+            execute(&df, &states[i], timeout);
             if (states[i].status == COMPLETED) {
                 completed++;
             }
