@@ -41,13 +41,11 @@ void initialize(Dataframe* df, const char* file_path) {
         if (ch == '\n') df->num_rows++;
     }
 
-    // row width = (
-    //   num_cols * cell_length -> for each cell
-    //   + (num_cols - 1) -> for commas
-    //   + 1 -> for newline
-    // )
-    // simplifies to:
-    df->row_width = (df->num_cols * df->cell_length) + df->num_cols;
+    df->row_width = (
+        (df->num_cols * df->cell_length) // for each cell
+        + df->num_cols - 1               // for commas
+        + 1                              // for newline at the end
+    );
 }
 
 void execute(Dataframe* df, Query* query) {
