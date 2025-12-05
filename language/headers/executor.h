@@ -9,46 +9,46 @@
 #include <sys/time.h>
 
 typedef struct {
-  // number of rows in the dataframe
-  int num_rows;
+	// number of rows in the dataframe
+	int num_rows;
 
-  // number of columns in the dataframe
-  int num_cols;
+	// number of columns in the dataframe
+	int num_cols;
 
-  // file descriptor for the opened CSV file
-  FILE *file;
+	// file descriptor for the opened CSV file
+	FILE *file;
 
-  // df enforces fixed-length cells
-  int cell_length;
+	// df enforces fixed-length cells
+	int cell_length;
 
-  // header row length in characters
-  int header_length;
+	// header row length in characters
+	int header_length;
 
-  // row width in characters (including commas and newline)
-  int row_width;
+	// row width in characters (including commas and newline)
+	int row_width;
 } Dataframe;
 
 typedef struct {
-  // user query is a part of execution state
-  Query *query;
+	// user query is a part of execution state
+	Query *query;
 
-  // to keep track of how much work was done previously
-  int processed_rows;
+	// to keep track of how much work was done previously
+	int processed_rows;
 
-  // intermediate result storage
-  double tally;
+	// intermediate result storage
+	double tally;
 
-  // execution status
-  enum { CREATED, INPROGRESS, COMPLETED } status;
+	// execution status
+	enum { CREATED, INPROGRESS, COMPLETED } status;
 
-  // position in file stream
-  long stream_position;
+	// position in file stream
+	long stream_position;
 
-  // values array for median
-  double *values;
+	// values array for median
+	double *values;
 
-  // capacity of values array for median
-  int values_capacity;
+	// capacity of values array for median
+	int values_capacity;
 } ExecutionState;
 
 void initialize(Dataframe *df, const char *file_path);
