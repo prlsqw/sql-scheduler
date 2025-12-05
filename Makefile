@@ -8,4 +8,4 @@ clean:
 	rm -f *.o
 
 format:
-	clang-format -i language/*.c language/headers/*.h
+	clang-format -i *.c *.h
