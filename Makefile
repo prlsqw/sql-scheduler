@@ -6,3 +6,6 @@ language:
 clean:
 	rm -f lang
 	rm -f *.o
+
+format:
+	clang-format -i language/*.c language/headers/*.h
