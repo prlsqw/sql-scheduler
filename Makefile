@@ -8,4 +8,4 @@ clean:
 	rm -f *.o
 
 format:
-	clang-format -i *.c *.h
+	find . -type f \( -name "*.c" -o -name "*.h" -o -name "*.cu" -o -name "*.cuh" \) -exec clang-format -i {} +
