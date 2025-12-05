@@ -17,7 +17,7 @@ def get_padded_random_float(flt_sz=18):
 
 os.makedirs("data", exist_ok=True)
 columns = list(range(random.randint(15, 30)))
-nrows = random.randint(500_000, 1_000_000)
+nrows = random.randint(5_000, 5_000)
 
 df = pandas.DataFrame(
     {

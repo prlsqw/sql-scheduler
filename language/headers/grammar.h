@@ -53,3 +53,7 @@ typedef struct {
 } Query;
 
 #endif
+
+// maximum length of a double
+// Citation: https://stackoverflow.com/a/1701272
+#define MAX_DOUBLE_LENGTH 1080

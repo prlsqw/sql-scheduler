@@ -98,3 +98,12 @@ void write_at(Dataframe* df, int row, int col, char* value);
  * \return current time in seconds since epoch
  */
 time_t now();
+
+/** 
+ * Align value for final cell to write with padding or truncation dependent on cell_length
+ * 
+ * \param value         double that needs to be truncated or padded into cell_length
+ * \param cell          cell that stores our final output string which we will write with
+ * \param cell_length   length of cells in csv based on df struct
+*/
+void align_num(double value, char* cell, int cell_length);

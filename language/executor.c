@@ -132,7 +132,6 @@ void execute_median(Dataframe* df, ExecutionState* state, time_t timeout) {
     state->status = COMPLETED;
 }
 
-// void execute_increment(Dataframe* df, int column_index, double value) {
 void execute_increment(Dataframe* df, ExecutionState* state, time_t timeout) {
     int column_index = state->query->column_index;
     double value = state->query->arg1;
@@ -179,7 +178,6 @@ void execute_increment(Dataframe* df, ExecutionState* state, time_t timeout) {
     printf("Executing INCREMENT on column %d by %f\n", column_index, value);
 }
 
-// void execute_write(Dataframe* df, int column_index, double value) {
 void execute_write(Dataframe* df, ExecutionState* state, time_t timeout) {
     int column_index = state->query->column_index;
     double value = state->query->arg1;
@@ -217,7 +215,6 @@ void execute_write(Dataframe* df, ExecutionState* state, time_t timeout) {
     state->status = COMPLETED;
 }
 
-// void execute_write_at(Dataframe* df, int column_index, int row_index, double value) {
 void execute_write_at(Dataframe* df, ExecutionState* state, time_t timeout) {
     int column_index = state->query->column_index;
     int row_index = (int)state->query->arg1;
@@ -237,35 +234,15 @@ void execute_write_at(Dataframe* df, ExecutionState* state, time_t timeout) {
             exit(1);
         }
     }
-    // 2. Convert the double to a string
-    char raw[64];
-    snprintf(raw, sizeof(raw), "%.15g", value); 
 
-    //3. set up padding or truncation
-    int len = (int)strlen(raw);
-    char cell[df->cell_length + 1];  // +1 for '\0'
-    // if too long, truncate
-    if (len >= df->cell_length) {
-        // Keep the first df->cell_length characters
-        for (int i = 0; i < df->cell_length; i++) {
-            cell[i] = raw[i];
-        }
-        cell[df->cell_length] = '\0';
-        //if too short, left-pad with 0s
-    } else {
-        int pad = df->cell_length - len;
-        for (int i = 0; i < pad; i++) {
-            cell[i] = '0';
-        }
-        for (int i = 0; i < len; i++) {
-            cell[pad + i] = raw[i];
-        }
-        cell[df->cell_length] = '\0';
-    }
-    // 4. Actually write at (row_index, column_index).
+    char cell[df->cell_length + 1];
+    
+    align_num(value, cell, df->cell_length);
+    
+    // Actually write at (row_index, column_index).
     write_at(df, row_index, column_index, cell);
 
-    printf("Executing WRITE_AT on column %d at row %d with value %f\n", column_index, row_index, value);
+    // printf("Executing WRITE_AT on column %d at row %d with value %f\n", column_index, row_index, value);
     state->status = COMPLETED;
 }
 
