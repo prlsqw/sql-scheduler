@@ -15,13 +15,16 @@ Let CMP = < | <= | ! | = | >= | >.
 The grammar of this DSL is defined as:
     QUERY := AVERAGE   (COL) 
            | MEDIAN    (COL) 
-           | INCREMENT (COL, INT) 
-           | WRITE     (COL, INT) 
+           | INCREMENT (COL, FLT) 
+           | WRITE     (COL, FLT) 
            | WRITE_AT  (COL, INT, FLT)
            | COUNT     (COL, CMP, FLT)
 */
 
 // the following operations are allowed, none implies parse error
+#ifndef GRAMMAR_H
+#define GRAMMAR_H 1
+
 typedef enum {
     AVERAGE, MEDIAN, INCREMENT, WRITE, WRITE_AT, COUNT, NONE
 } Operation;
@@ -37,10 +40,11 @@ typedef struct {
 
     // second argument is either:
     // - -1 (to indicate query does not have this arg)
-    // - integer value (for INCREMENT, WRITE, WRITE_AT)
+    // - integer value (for WRITE_AT)
     // - char value (for COUNT)
-    // so, can be stored as an integer
-    int arg1;
+    // - float value (for INCREMENT, WRITE)
+    // so, can be stored as a double and interpreted accordingly
+    double arg1;
 
     // third argument is either:
     // - -1.0
@@ -48,3 +52,4 @@ typedef struct {
     double arg2;
 } Query;
 
+#endif

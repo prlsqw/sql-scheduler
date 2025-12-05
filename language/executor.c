@@ -6,7 +6,7 @@
 #include "headers/utils.h"
 
 void initialize(Dataframe* df, const char* file_path) {
-    df->file = fopen(file_path, "r");
+    df->file = fopen(file_path, "r+");
     if (df->file == NULL) {
         perror("Error opening file");
         exit(1);
@@ -15,10 +15,14 @@ void initialize(Dataframe* df, const char* file_path) {
     df->num_rows = 1;
     df->num_cols = 1;
     df->cell_length = 0;
+    df->header_length = 0;
     
     // num cols is the (number of ',' in line 1) + 1
+    // header_length is the number of characters in line 1
     while (1) {
         char ch = fgetc(df->file);
+        df->header_length++;
+
         if (ch == '\n' || ch == EOF) break;
         if (ch == ',') df->num_cols++; 
     }
@@ -36,6 +40,12 @@ void initialize(Dataframe* df, const char* file_path) {
         if (ch == EOF) break;
         if (ch == '\n') df->num_rows++;
     }
+
+    df->row_width = (
+        (df->num_cols * df->cell_length) // for each cell
+        + df->num_cols - 1               // for commas
+        + 1                              // for newline at the end
+    );
 }
 
 void execute(Dataframe* df, Query* query) {
@@ -54,9 +64,9 @@ void execute(Dataframe* df, Query* query) {
         case WRITE:
             return execute_write(df, query->column_index, query->arg1);
         case WRITE_AT:
-            return execute_write_at(df, query->column_index, query->arg1, query->arg2);
+            return execute_write_at(df, query->column_index, (int)query->arg1, query->arg2);
         case COUNT:
-            return execute_count(df, query->column_index, query->arg1, query->arg2);
+            return execute_count(df, query->column_index, (char)((int)query->arg1), query->arg2);
         default:
             perror("Execute Error: Unknown operation");
             exit(1);
@@ -96,15 +106,47 @@ void execute_median(Dataframe* df, int column_index) {
     printf("Executing MEDIAN on column %d\n", column_index);
 }
 
-void execute_increment(Dataframe* df, int column_index, int value) {
-    printf("Executing INCREMENT on column %d by %d\n", column_index, value);
+void execute_increment(Dataframe* df, int column_index, double value) {
+    if (column_index < 0 || column_index >= df->num_cols) {
+        perror("INCREMENT Error: Column index out of range");
+        exit(1);
+    }
+
+    char buffer[ df->cell_length + 1 ];
+
+    // Iterate over all data rows.
+    for (int row = 0; row < df->num_rows -1; row++) {
+        // 1) Read current value at (row, col).
+        read_at(df, row, column_index, buffer);
+
+        // 2) Convert to double and increment.
+        double current = atof(buffer);
+        double updated = current + value;
+
+        // 3) Write the updated value back. (Write at handles truncation and padding)
+        execute_write_at(df, column_index, row, updated);
+    }
+
+    printf("Executing INCREMENT on column %d by %f\n", column_index, value);
+
 }
 
-void execute_write(Dataframe* df, int column_index, int value) {
-    printf("Executing WRITE on column %d with value %d\n", column_index, value);
+void execute_write(Dataframe* df, int column_index, double value) {
+    if (column_index < 0 || column_index >= df->num_cols) {
+        perror("WRITE Error: Column index out of range");
+        exit(1);
+    }
+
+    // Iterate over all rows.
+    for (int row = 0; row < df->num_rows; row++) {
+        execute_write_at(df, column_index, row, value);
+    }
+
+    printf("Executing WRITE on column %d with value %f\n", column_index, value);
 }
 
 void execute_write_at(Dataframe* df, int column_index, int row_index, double value) {
+    // 1. Check column and row are in correct bounds
     if (column_index < 0 || column_index >= df->num_cols) {
         perror("COUNT Error: Column index out of range");
         exit(1);
@@ -114,41 +156,34 @@ void execute_write_at(Dataframe* df, int column_index, int row_index, double val
         perror("COUNT Error: Row index out of range");
         exit(1);
     }
-    // clip first
-    // atof
     
-    //
+    // 2. Convert the double to a string
+    char raw[64];
+    snprintf(raw, sizeof(raw), "%.15g", value); 
 
-    // sprintf(str_double, "%*lf", df->cell_size, value);
-
-    int loc_col_ind = column_index;
-    // seek to beginning of file
-    fseek(df->file, 0, SEEK_SET);
-    
-    // move cursor to correct row
-    // <= since first row is header row
-    for (int i = 0; i <= row_index; i++) {
-        next_line(df->file);
+    //3. set up padding or truncation
+    int len = (int)strlen(raw);
+    char cell[df->cell_length + 1];  // +1 for '\0'
+    // if too long, truncate
+    if (len >= df->cell_length) {
+        // Keep the first df->cell_length characters
+        for (int i = 0; i < df->cell_length; i++) {
+            cell[i] = raw[i];
+        }
+        cell[df->cell_length] = '\0';
+        //if too short, left-pad with 0s
+    } else {
+        int pad = df->cell_length - len;
+        for (int i = 0; i < pad; i++) {
+            cell[i] = '0';
+        }
+        for (int i = 0; i < len; i++) {
+            cell[pad + i] = raw[i];
+        }
+        cell[df->cell_length] = '\0';
     }
-
-    // find the column_index-th comma
-    char ch = fgetc(df->file);
-    while (ch != EOF && loc_col_ind > 0) {
-        if (ch == ',') loc_col_ind--;
-        ch = fgetc(df->file);
-    }
-
-    // // for each column, find the column_index-th comma
-    // char buffer[MAX_CELL_LENGTH];
-
-    // write until the next comma or end of line
-    int buf_index = 0;
-    while (ch != EOF && ch != ',' && ch != '\n') {
-        buffer[buf_index++] = ch;
-        ch = fgetc(file);
-    }
-
-    buffer[buf_index] = '\0';
+    // 4. Actually write at (row_index, column_index).
+    write_at(df, row_index, column_index, cell);
 
     printf("Executing WRITE_AT on column %d at row %d with value %f\n", column_index, row_index, value);
 }

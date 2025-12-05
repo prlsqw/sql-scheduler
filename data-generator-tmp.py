@@ -2,19 +2,32 @@ import pandas
 import random
 import os
 
-# os.makedirs("data", exist_ok=True)
-# columns = list(range(random.randint(15, 20)))
-# nrows = random.randint(500_000, 1_000_000)
 
-# df = pandas.DataFrame(
-#     {
-#         col: [random.uniform(0, 1000) for _ in range(nrows)]
-#         for col in columns
-#     }
-# )
+def get_padded_random_float(flt_sz=18):
+    num = random.uniform(0, 1000)
+    s = f"{num}"
 
-# df.to_csv("data/test1.csv", index=False)
+    if len(s) < flt_sz:
+        s += "0" * (flt_sz - len(s))
 
-df = pandas.read_csv("data/test1.csv")
-print(df["0"].mean())
-print(len(df[df["4"] >= 2.710000]))
+    if len(s) > flt_sz:
+        s = s[:flt_sz]
+    
+    return s
+
+os.makedirs("data", exist_ok=True)
+columns = list(range(random.randint(15, 30)))
+nrows = random.randint(500_000, 1_000_000)
+
+df = pandas.DataFrame(
+    {
+        col: [get_padded_random_float() for _ in range(nrows)]
+        for col in columns
+    }
+)
+
+df.to_csv("data/test1.csv", index=False)
+
+# df = pandas.read_csv("data/test1.csv")
+# print(df["0"].mean())
+# print(len(df[df["4"] >= 2.710000]))

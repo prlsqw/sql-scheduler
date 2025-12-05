@@ -46,7 +46,7 @@ void parse(char* command, Query* query) {
             rtrim(arg1_str);
 
             determine_column_index(column_name, query);
-            query->arg1 = atoi(arg1_str);
+            query->arg1 = atof(arg1_str);
             return;
         }
 
@@ -64,7 +64,7 @@ void parse(char* command, Query* query) {
             // arg1_str is a comparison operator, store as char
             determine_comparison_operator(arg1_str, query);
         } else {
-            // arg1_str is an integer
+            // arg1_str is an integer (row index for WRITE_AT)
             query->arg1 = atoi(arg1_str);
         }
         query->arg2 = atof(arg2_str);
