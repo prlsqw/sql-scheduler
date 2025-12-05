@@ -43,9 +43,6 @@ typedef struct {
 
     // position in file stream
     long stream_position;
-
-    // flag to keep track of whether user has called write_at
-    int user_write_at;
 } ExecutionState;
 
 void initialize(Dataframe* df, const char* file_path);

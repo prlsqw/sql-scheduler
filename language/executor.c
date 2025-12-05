@@ -163,7 +163,6 @@ void execute_increment(Dataframe* df, ExecutionState* state, time_t timeout) {
 
         state->query->arg1 = state->processed_rows;
         state->query->arg2 = updated;
-        state->user_write_at = 0;
         // 3) Write the updated value back. (Write at handles truncation and padding)
         execute_write_at(df, state, timeout);
         state->processed_rows++;
@@ -201,7 +200,6 @@ void execute_write(Dataframe* df, ExecutionState* state, time_t timeout) {
     ) {
         state->query->arg1 = state->processed_rows;
         state->query->arg2 = value;
-        state->user_write_at = 0;
         execute_write_at(df, state, timeout);
         state->processed_rows++;
     }
@@ -220,6 +218,8 @@ void execute_write_at(Dataframe* df, ExecutionState* state, time_t timeout) {
     int column_index = state->query->column_index;
     int row_index = (int)state->query->arg1;
     double value = state->query->arg2;
+    // local flag to keep track of printing WRITE_AT only when the user calls it
+    int user_called_write_at = 0;
 
     // housekeeping if call is the first one
     if (state->status == CREATED) {
@@ -234,7 +234,8 @@ void execute_write_at(Dataframe* df, ExecutionState* state, time_t timeout) {
             perror("WRITE_AT Error: Row index out of range");
             exit(1);
         }
-        state->user_write_at = 1;
+
+        user_called_write_at = 1;
     }
 
     char cell[df->cell_length + 1];
@@ -244,7 +245,7 @@ void execute_write_at(Dataframe* df, ExecutionState* state, time_t timeout) {
     // Actually write at (row_index, column_index).
     write_at(df, row_index, column_index, cell);
 
-    if(state->user_write_at == 1){
+    if(user_called_write_at == 1){
         printf("WRITE_AT(%d, %d, %f)\n", column_index, row_index, value);
         state->status = COMPLETED;
     }
