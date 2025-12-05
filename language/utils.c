@@ -2,8 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "headers/utils.h"
 #include "headers/executor.h"
+#include "headers/utils.h"
 
 /**
  * Split the given string at the first occurence of the given character
@@ -14,19 +14,19 @@
  * \param split_at character at which to split
  * \return         pointer to the character after the split character,
  */
-char* split(char* str, char split_at) {
-    int i = 0;
-    while (str[i] != split_at && str[i] != '\0') {
-        i++;
-    }
+char *split(char *str, char split_at) {
+  int i = 0;
+  while (str[i] != split_at && str[i] != '\0') {
+    i++;
+  }
 
-    if (str[i] == '\0') {
-        perror("Split Error: Character not found in string");
-        exit(1);
-    }
+  if (str[i] == '\0') {
+    perror("Split Error: Character not found in string");
+    exit(1);
+  }
 
-    str[i] = '\0';
-    return str + i + 1;
+  str[i] = '\0';
+  return str + i + 1;
 }
 
 /**
@@ -36,12 +36,12 @@ char* split(char* str, char split_at) {
  * \param str string to trim
  * \return    pointer to the first non-whitespace character
  */
-char* ltrim(char* str) {
-    int i = 0;
-    while (str[i] == ' ' || str[i] == '\t' || str[i] == '\n') {
-        i++;
-    }
-    return str + i;
+char *ltrim(char *str) {
+  int i = 0;
+  while (str[i] == ' ' || str[i] == '\t' || str[i] == '\n') {
+    i++;
+  }
+  return str + i;
 }
 
 /**
@@ -49,12 +49,12 @@ char* ltrim(char* str) {
  *
  * \param str string to trim
  */
-void rtrim(char* str) {
-    int i = strlen(str) - 1;
-    while (i > 0 && (str[i] == ' ' || str[i] == '\t' || str[i] == '\n')) {
-        i--;
-    }
-    str[i + 1] = '\0';
+void rtrim(char *str) {
+  int i = strlen(str) - 1;
+  while (i > 0 && (str[i] == ' ' || str[i] == '\t' || str[i] == '\n')) {
+    i--;
+  }
+  str[i + 1] = '\0';
 }
 
 /**
@@ -63,35 +63,36 @@ void rtrim(char* str) {
  *
  * \param file         file pointer to read from
  * \param column_index index of the column to read
- * \param buffer       buffer to store the read value (should have at least 
+ * \param buffer       buffer to store the read value (should have at least
  *                      df->cell_length capacity)
  */
-void read_value_at_column(FILE* file, int column_index, char* buffer) {
-    // find the column_index-th comma
-    char ch = fgetc(file);
-    while (ch != EOF && column_index > 0) {
-        if (ch == ',') column_index--;
-        ch = fgetc(file);
-    }
+void read_value_at_column(FILE *file, int column_index, char *buffer) {
+  // find the column_index-th comma
+  char ch = fgetc(file);
+  while (ch != EOF && column_index > 0) {
+    if (ch == ',')
+      column_index--;
+    ch = fgetc(file);
+  }
 
-    // read until the next comma or end of line
-    int buf_index = 0;
-    while (ch != EOF && ch != ',' && ch != '\n') {
-        buffer[buf_index++] = ch;
-        ch = fgetc(file);
-    }
+  // read until the next comma or end of line
+  int buf_index = 0;
+  while (ch != EOF && ch != ',' && ch != '\n') {
+    buffer[buf_index++] = ch;
+    ch = fgetc(file);
+  }
 
-    buffer[buf_index] = '\0';
+  buffer[buf_index] = '\0';
 }
 
 /**
  * Move the cursor of the file to right after \n or EOF, whichever comes first
  */
-void next_line(FILE* file) {
-    char ch = fgetc(file);
-    while (ch != '\n' && ch != EOF) {
-        ch = fgetc(file);
-    }
+void next_line(FILE *file) {
+  char ch = fgetc(file);
+  while (ch != '\n' && ch != EOF) {
+    ch = fgetc(file);
+  }
 }
 
 /**
@@ -103,81 +104,130 @@ void next_line(FILE* file) {
  * \return    result of the comparison
  */
 int compare(double a, char op, double b) {
-    switch (op) {
-        case '<':  return a < b;
-        case 'l':  return a <= b; 
-        case '!':  return a != b;
-        case '=':  return a == b;
-        case 'g':  return a >= b;
-        case '>':  return a > b;
-        default:
-            perror("Comparison Error: Unknown comparison operator");
-            exit(1);
-    }
+  switch (op) {
+  case '<':
+    return a < b;
+  case 'l':
+    return a <= b;
+  case '!':
+    return a != b;
+  case '=':
+    return a == b;
+  case 'g':
+    return a >= b;
+  case '>':
+    return a > b;
+  default:
+    perror("Comparison Error: Unknown comparison operator");
+    exit(1);
+  }
 }
 
 /**
  * Move the cursor of the dataframe file to the row-th row
  * and col-th column in dataframe
- * 
+ *
  * \param df      dataframe whose file cursor to move
  * \param row     row index to move to (0-indexed)
  * \param col     column index to move to (0-indexed)
  */
-void move_to(Dataframe* df, int row, int col) {
-    // need to:
-    // - skip header row (header_length characters)
-    // - skip `row` rows (row_width characters each)
-    // - skip (col * (cell_length + 1)) characters in the target row
-    int position = df->header_length + (row * df->row_width) + (col * (df->cell_length + 1));
-    fseek(df->file, position, SEEK_SET);
+void move_to(Dataframe *df, int row, int col) {
+  // need to:
+  // - skip header row (header_length characters)
+  // - skip `row` rows (row_width characters each)
+  // - skip (col * (cell_length + 1)) characters in the target row
+  int position =
+      df->header_length + (row * df->row_width) + (col * (df->cell_length + 1));
+  fseek(df->file, position, SEEK_SET);
 }
 
 /**
  * Read the value at the given (row, col) position in the file
- * 
+ *
  * \param df      dataframe whose file pointer to read from
  * \param row     row index to read from (0-indexed)
  * \param col     column index to read from (0-indexed)
  * \param buffer  buffer to store the read value (should have enough space
  *                 i.e, determined by df->cell_length)
  */
-void read_at(Dataframe* df, int row, int col, char* buffer) {
-    move_to(df, row, col);
-    
-    int buf_index = 0;
-    char ch = fgetc(df->file);
-    while (ch != EOF && ch != ',' && ch != '\n') {
-        buffer[buf_index++] = ch;
-        ch = fgetc(df->file);
-    }
-    buffer[buf_index] = '\0';
+void read_at(Dataframe *df, int row, int col, char *buffer) {
+  move_to(df, row, col);
+
+  int buf_index = 0;
+  char ch = fgetc(df->file);
+  while (ch != EOF && ch != ',' && ch != '\n') {
+    buffer[buf_index++] = ch;
+    ch = fgetc(df->file);
+  }
+  buffer[buf_index] = '\0';
 }
 
 /**
  * Write the value at the given (row, col) position in the file
- * 
+ *
  * \param df     dataframe whose file pointer to read from
  * \param row    row index to read from (0-indexed)
  * \param col    column index to read from (0-indexed)
  * \param value  value to write (should be df->cell_length sized)
  */
-void write_at(Dataframe* df, int row, int col, char* value) {
-    move_to(df, row, col);
+void write_at(Dataframe *df, int row, int col, char *value) {
+  move_to(df, row, col);
 
-    // Citation: https://www.tutorialspoint.com/c_standard_library/c_function_fflush.htm
-    fwrite(value, sizeof(char), df->cell_length, df->file);
-    fflush(df->file);
+  // Citation:
+  // https://www.tutorialspoint.com/c_standard_library/c_function_fflush.htm
+  fwrite(value, sizeof(char), df->cell_length, df->file);
+  fflush(df->file);
 }
 
 /**
  * Get current time in milliseconds since epoch
- * 
+ *
  * \return  milliseconds since epoch
  */
 time_t now() {
-    // Citation: https://stackoverflow.com/a/51336144
-    struct timeval current_time;
-    gettimeofday(&current_time, NULL);
-    return (current_time.tv_sec * 1000) + (current_time.tv_usec / 1000);
+  // Citation: https://stackoverflow.com/a/51336144
+  struct timeval current_time;
+  gettimeofday(&current_time, NULL);
+  return (current_time.tv_sec * 1000) + (current_time.tv_usec / 1000);
+}
+
+/**
+ * Insert the given value into the sorted array using binary search
+ *
+ * \param values     array to insert into
+ * \param count      number of elements in the array
+ * \param capacity   capacity of the array
+ * \param value      value to insert
+ */
+void insert_sorted(double **values, int *count, int *capacity, double value) {
+  // double array size if array is full
+  if (*count >= *capacity) {
+    *capacity *= 2;
+    *values = realloc(*values, (*capacity) * sizeof(double));
+    if (*values == NULL) {
+      perror("insert_sorted Error: Memory reallocation failed");
+      exit(1);
+    }
+  }
+
+  // binary search to find intsert position of value
+  int insert_pos = 0;
+  int right = *count;
+  while (insert_pos < right) {
+    int mid = insert_pos + (right - insert_pos) / 2;
+    if ((*values)[mid] < value) {
+      insert_pos = mid + 1;
+    } else {
+      right = mid;
+    }
+  }
+
+  // shift all items to the right of insert_pos to make space
+  for (int i = *count; i > insert_pos; i--) {
+    (*values)[i] = (*values)[i - 1];
+  }
+
+  // insert the new value and increment count
+  (*values)[insert_pos] = value;
+  (*count)++;
 }
