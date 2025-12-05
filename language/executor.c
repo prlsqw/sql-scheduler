@@ -154,8 +154,10 @@ void execute_increment(Dataframe* df, ExecutionState* state, time_t timeout) {
         double current = atof(buffer);
         double updated = current + value;
 
+        state->query->arg1 = row;
+        state->query->arg2 = updated;
         // 3) Write the updated value back. (Write at handles truncation and padding)
-        execute_write_at(df, column_index, row, updated);
+        execute_write_at(df, state, timeout);
     }
 
     printf("Executing INCREMENT on column %d by %f\n", column_index, value);
@@ -176,7 +178,9 @@ void execute_write(Dataframe* df, ExecutionState* state, time_t timeout) {
 
     // Iterate over all rows.
     for (int row = 0; row < df->num_rows-1; row++) {
-        execute_write_at(df, column_index, row, value);
+        state->query->arg1 = row;
+        state->query->arg2 = value;
+        execute_write_at(df, state, timeout);
     }
 
     printf("Executing WRITE on column %d with value %f\n", column_index, value);
