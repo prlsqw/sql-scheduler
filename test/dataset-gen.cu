@@ -1,25 +1,55 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <curand_kernel.h>
 
 #define FIRST_COL_NAME "0"
+#define DEFAULT_SEED 67
+#define THREAD_I blockDim.x * blockIdx.x + threadIdx.x
 // TODO: make not hard-coded
 #define DIGITS 6
 
-__global__ void generate_dataset(char* csv[]) {
-  printf("hi, %d %d\n", blockIdx.x, threadIdx.x);
+// row, column
+__global__ void generate_dataset(int* data, int seed, curandState* state) {
+  curand_init(seed, THREAD_I, 0, &state[THREAD_I]);
+  curandState localState = state[THREAD_I];
+  double rand = curand_uniform_double(&localState);
+  // curand_uniform_double EXCLUDES 0.0, INCLUDES 1.0, so subtract 1
+  int num = ((int) (pow(10.0, DIGITS) * rand)) - 1;
+  // data will be row-major
+  data[THREAD_I] = num;
 }
 
 // TODO: make extern
 int main(int argc, char* argv[]) {
   // get col, row count from args
-  if (argc != 4) {
-    fprintf(stderr, "Usage: %s <output_path> <num_cols> <num_rows>\n", argv[0]);
+  if (argc < 4 || argc > 5) {
+    fprintf(stderr, "Usage: %s <output_path> <num_cols> <num_rows> <seed?>\n", argv[0]);
     exit(EXIT_FAILURE);
   }
 
   char* output_path = argv[1];
-  int num_cols = atoi(argv[2]);
-  int num_rows = atoi(argv[3]);
+  int num_rows = atoi(argv[2]);
+  int num_cols = atoi(argv[3]);
+  int seed = argc == 5 ? atoi(argv[4]) : DEFAULT_SEED;
+
+  int num_data = num_rows * num_cols;
+
+  // create data array on gpu
+  int* gpu_data;
+  if (cudaMalloc(&gpu_data, sizeof(int) * num_data) != cudaSuccess) {
+    fprintf(stderr, "Failed to allocate CSV array on GPU\n");
+    exit(EXIT_FAILURE);
+  }
+
+  // create curand states
+  curandState* devStates;
+  if (cudaMalloc(&devStates, sizeof(curandState) * num_data) != cudaSuccess) {
+    fprintf(stderr, "Failed to allocate cuRAND state on GPU\n");
+    exit(EXIT_FAILURE);
+  }
+
+  // run kernel on gpu csv
+  generate_dataset<<<num_rows, num_cols>>>(gpu_data, seed, devStates);
 
   // construct column name header
   // first row is 0, ..., n
@@ -34,40 +64,25 @@ int main(int argc, char* argv[]) {
     strcat(col_header, next_col_name);
   }
 
-  // create csv array on gpu
-  char** gpu_csv;
-  if (cudaMalloc(&gpu_csv, sizeof(char*) * num_rows) != cudaSuccess) {
-    fprintf(stderr, "Failed to allocate CSV array on GPU\n");
-    exit(EXIT_FAILURE);
-  }
-
-  // allocate memory for each line on gpu
-  char* gpu_csv_lines[num_rows];
-  const int MAX_LINE_LEN = (DIGITS + 1) * num_cols;
-  for (int i = 0; i < num_rows; i++) {
-    if (cudaMalloc(&gpu_csv_lines[i], sizeof(char) * MAX_LINE_LEN) != cudaSuccess) {
-      fprintf(stderr, "Failed to allocate line %d on GPU\n", i);
-      exit(EXIT_FAILURE);
-    }
-  }
-
-  // copy allocated gpu pointers to gpu csv array
-  if (cudaMemcpy(gpu_csv, gpu_csv_lines, sizeof(char*) * num_rows, cudaMemcpyHostToDevice) != cudaSuccess) {
-    fprintf(stderr, "Failed to copy line pointers to GPU's CSV array\n");
-    exit(EXIT_FAILURE);
-  }
-
-  // run kernel on gpu csv
-  generate_dataset<<<num_cols, num_rows>>>(gpu_csv);
-
   // Wait for the kernel to finish
   if(cudaDeviceSynchronize() != cudaSuccess) {
     fprintf(stderr, "CUDA Error: %s\n", cudaGetErrorString(cudaPeekAtLastError()));
+    exit(EXIT_FAILURE);
   }
 
   // copy back csv array
-  char* csv[num_rows + 1];
-  csv[0] = col_header;
+  int data[num_rows][num_cols];
+  if (cudaMemcpy(data, gpu_data, sizeof(int) * num_data, cudaMemcpyDeviceToHost) != cudaSuccess) {
+    fprintf(stderr, "Failed to copy data back from GPU\n");
+    exit(EXIT_FAILURE);
+  }
+  for (int row = 0; row < num_rows; row++) {
+    printf("%d", data[row][0]);
+    for (int col = 1; col < num_cols; col++) {
+      printf(" %d", data[row][col]);
+    }
+    printf("\n");
+  }
 
   // write to file
 }
