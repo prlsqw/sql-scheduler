@@ -144,16 +144,16 @@ void execute_increment(Dataframe* df, ExecutionState* state, time_t timeout) {
 
         // sanity check
         if (column_index < 0 || column_index >= df->num_cols) {
-            perror("AVERAGE Error: Column index out of range");
+            perror("Increment Error: Column index out of range");
             exit(1);
         }
     }
-
-     while (
+    char buffer[df->cell_length + 1];
+    
+    while (
         (state->processed_rows < df->num_rows - 1)
          && (now() - start_time < timeout)
-    ) {
-        char buffer[ df->cell_length + 1 ];
+    ) {    
         // 1) Read current value at (row, col).
         read_at(df, state->processed_rows, column_index, buffer);
 
@@ -163,7 +163,7 @@ void execute_increment(Dataframe* df, ExecutionState* state, time_t timeout) {
 
         state->query->arg1 = state->processed_rows;
         state->query->arg2 = updated;
-        
+        state->user_write_at = 0;
         // 3) Write the updated value back. (Write at handles truncation and padding)
         execute_write_at(df, state, timeout);
         state->processed_rows++;
@@ -175,7 +175,7 @@ void execute_increment(Dataframe* df, ExecutionState* state, time_t timeout) {
         // swap context
         return;
     }
-    printf("Executing INCREMENT on column %d by %f\n", column_index, value);
+    printf("INCREMENT(%d, %f)\n", column_index, value);
 }
 
 void execute_write(Dataframe* df, ExecutionState* state, time_t timeout) {
@@ -190,7 +190,7 @@ void execute_write(Dataframe* df, ExecutionState* state, time_t timeout) {
 
         // sanity check
         if (column_index < 0 || column_index >= df->num_cols) {
-            perror("AVERAGE Error: Column index out of range");
+            perror("WRITE Error: Column index out of range");
             exit(1);
         }
     }
@@ -201,6 +201,7 @@ void execute_write(Dataframe* df, ExecutionState* state, time_t timeout) {
     ) {
         state->query->arg1 = state->processed_rows;
         state->query->arg2 = value;
+        state->user_write_at = 0;
         execute_write_at(df, state, timeout);
         state->processed_rows++;
     }
@@ -211,7 +212,7 @@ void execute_write(Dataframe* df, ExecutionState* state, time_t timeout) {
         // swap context
         return;
     }
-    printf("Executing WRITE on column %d with value %f\n", column_index, value);
+    printf("WRITE( %d, %f)\n", column_index, value);
     state->status = COMPLETED;
 }
 
@@ -226,11 +227,11 @@ void execute_write_at(Dataframe* df, ExecutionState* state, time_t timeout) {
 
         // sanity check
         if (column_index < 0 || column_index >= df->num_cols) {
-            perror("AVERAGE Error: Column index out of range");
+            perror("WRITE_AT Error: Column index out of range");
             exit(1);
         }
         if (row_index < 0 || row_index >= df->num_rows) {
-            perror("COUNT Error: Row index out of range");
+            perror("WRITE_AT Error: Row index out of range");
             exit(1);
         }
     }
@@ -242,8 +243,10 @@ void execute_write_at(Dataframe* df, ExecutionState* state, time_t timeout) {
     // Actually write at (row_index, column_index).
     write_at(df, row_index, column_index, cell);
 
-    // printf("Executing WRITE_AT on column %d at row %d with value %f\n", column_index, row_index, value);
+    if(state->user_write_at == 1){
+    printf("WRITE_AT(%d, %d, %f)\n", column_index, row_index, value);
     state->status = COMPLETED;
+    }
 }
 
 void execute_count(Dataframe* df, ExecutionState* state, time_t timeout) {
