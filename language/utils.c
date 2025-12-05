@@ -5,7 +5,6 @@
 #include "headers/utils.h"
 #include "headers/executor.h"
 
-#
 
 /**
  * Split the given string at the first occurence of the given character
