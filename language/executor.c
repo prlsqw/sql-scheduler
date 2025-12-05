@@ -245,8 +245,8 @@ void execute_write_at(Dataframe* df, ExecutionState* state, time_t timeout) {
     write_at(df, row_index, column_index, cell);
 
     if(state->user_write_at == 1){
-    printf("WRITE_AT(%d, %d, %f)\n", column_index, row_index, value);
-    state->status = COMPLETED;
+        printf("WRITE_AT(%d, %d, %f)\n", column_index, row_index, value);
+        state->status = COMPLETED;
     }
 }
 
