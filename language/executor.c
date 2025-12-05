@@ -234,6 +234,7 @@ void execute_write_at(Dataframe* df, ExecutionState* state, time_t timeout) {
             perror("WRITE_AT Error: Row index out of range");
             exit(1);
         }
+        state->user_write_at = 1;
     }
 
     char cell[df->cell_length + 1];
