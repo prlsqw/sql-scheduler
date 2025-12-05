@@ -1,4 +1,5 @@
 #include "executor.h"
+#include <sys/time.h>
 
 /**
  * Split the given string at the first occurence of the given character
@@ -89,3 +90,11 @@ void read_at(Dataframe* df, int row, int col, char* buffer);
  * \param value  value to write (should be df->cell_length sized)
  */
 void write_at(Dataframe* df, int row, int col, char* value);
+
+
+/**
+ * Get current time in seconds since epoch
+ * 
+ * \return current time in seconds since epoch
+ */
+time_t now();

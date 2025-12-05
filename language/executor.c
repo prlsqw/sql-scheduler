@@ -48,66 +48,97 @@ void initialize(Dataframe* df, const char* file_path) {
     );
 }
 
-void execute(Dataframe* df, Query* query) {
+void execute(Dataframe* df, ExecutionState* state, time_t timeout) {
     if (df->file == NULL) {
         perror("Execute Error: Dataframe not initialized");
         exit(1);
     }
 
-    switch (query->operation) {
+    switch (state->query->operation) {
         case AVERAGE:
-            return execute_average(df, query->column_index);
+            return execute_average(df, state, timeout);
         case MEDIAN:
-            return execute_median(df, query->column_index);
+            return execute_median(df, state, timeout);
         case INCREMENT:
-            return execute_increment(df, query->column_index, query->arg1);
+            return execute_increment(df, state, timeout);
         case WRITE:
-            return execute_write(df, query->column_index, query->arg1);
+            return execute_write(df, state, timeout);
         case WRITE_AT:
-            return execute_write_at(df, query->column_index, (int)query->arg1, query->arg2);
+            return execute_write_at(df, state, timeout);
         case COUNT:
-            return execute_count(df, query->column_index, (char)((int)query->arg1), query->arg2);
+            return execute_count(df, state, timeout);
         default:
             perror("Execute Error: Unknown operation");
             exit(1);
     }
 }
 
-void execute_average(Dataframe* df, int column_index) {
-    // sanity check
-    if (column_index < 0 || column_index >= df->num_cols) {
-        perror("AVERAGE Error: Column index out of range");
-        exit(1);
+void execute_average(Dataframe* df, ExecutionState* state, time_t timeout) {
+
+    int column_index = state->query->column_index;
+    time_t start_time = now();
+
+    // housekeeping if call is the first one
+    if (state->status == CREATED) {
+        state->processed_rows = 0;
+        state->tally = 0.0;
+        state->status = INPROGRESS;
+
+        // position after header row to mark where to start
+        state->stream_position = df->header_length; 
+
+        // sanity check
+        if (column_index < 0 || column_index >= df->num_cols) {
+            perror("AVERAGE Error: Column index out of range");
+            exit(1);
+        }
     }
     
-    // seek to beginning of file
+    // seek to last position in file stream
     // Citation: https://man7.org/linux/man-pages/man3/fseek.3.html
-    fseek(df->file, 0, SEEK_SET);
-    
-    // ignore the header row
-    next_line(df->file);
+    fseek(df->file, state->stream_position, SEEK_SET);
 
     // for each column, find the column_index-th comma
     // store the value after that comma in a buffer
     char buffer[df->cell_length + 1];
-    double result = 0.0;
 
     // in each row, find the value at column_index
-    for (int i = 0; i < df->num_rows - 1; i++) {
+    while (
+        (state->processed_rows < df->num_rows - 1)
+         && (now() - start_time < timeout)
+    ) {
         read_value_at_column(df->file, column_index, buffer);
-        result += atof(buffer);
+        state->tally += atof(buffer);
         next_line(df->file);
+        state->processed_rows++;
     }
 
-    printf("AVERAGE(%d): %f\n", column_index, result / (df->num_rows - 1));
+    if (state->processed_rows == df->num_rows - 1) {
+        state->status = COMPLETED;
+    } else {
+        // save position in file stream for next call
+        state->stream_position = ftell(df->file);
+
+        // swap context
+        return;
+    }
+
+    printf("AVERAGE(%d): %f\n", column_index, state->tally / (df->num_rows - 1));
 }
 
-void execute_median(Dataframe* df, int column_index) {
+void execute_median(Dataframe* df, ExecutionState* state, time_t timeout) {
+    int column_index = state->query->column_index;
     printf("Executing MEDIAN on column %d\n", column_index);
+    state->status = COMPLETED;
 }
 
-void execute_increment(Dataframe* df, int column_index, double value) {
-    if (column_index < 0 || column_index >= df->num_cols) {
+// void execute_increment(Dataframe* df, int column_index, double value) {
+void execute_increment(Dataframe* df, ExecutionState* state, time_t timeout) {
+    int column_index = state->query->column_index;
+    double value = state->query->arg1;
+    
+
+     if (column_index < 0 || column_index >= df->num_cols) {
         perror("INCREMENT Error: Column index out of range");
         exit(1);
     }
@@ -129,23 +160,35 @@ void execute_increment(Dataframe* df, int column_index, double value) {
 
     printf("Executing INCREMENT on column %d by %f\n", column_index, value);
 
+    state->status = COMPLETED;
+
 }
 
-void execute_write(Dataframe* df, int column_index, double value) {
-    if (column_index < 0 || column_index >= df->num_cols) {
+// void execute_write(Dataframe* df, int column_index, double value) {
+void execute_write(Dataframe* df, ExecutionState* state, time_t timeout) {
+    int column_index = state->query->column_index;
+    double value = state->query->arg1;
+
+     if (column_index < 0 || column_index >= df->num_cols) {
         perror("WRITE Error: Column index out of range");
         exit(1);
     }
 
     // Iterate over all rows.
-    for (int row = 0; row < df->num_rows; row++) {
+    for (int row = 0; row < df->num_rows-1; row++) {
         execute_write_at(df, column_index, row, value);
     }
 
     printf("Executing WRITE on column %d with value %f\n", column_index, value);
+    state->status = COMPLETED;
 }
 
-void execute_write_at(Dataframe* df, int column_index, int row_index, double value) {
+// void execute_write_at(Dataframe* df, int column_index, int row_index, double value) {
+void execute_write_at(Dataframe* df, ExecutionState* state, time_t timeout) {
+    int column_index = state->query->column_index;
+    int row_index = (int)state->query->arg1;
+    double value = state->query->arg2;
+
     // 1. Check column and row are in correct bounds
     if (column_index < 0 || column_index >= df->num_cols) {
         perror("COUNT Error: Column index out of range");
@@ -185,33 +228,62 @@ void execute_write_at(Dataframe* df, int column_index, int row_index, double val
     // 4. Actually write at (row_index, column_index).
     write_at(df, row_index, column_index, cell);
 
+
     printf("Executing WRITE_AT on column %d at row %d with value %f\n", column_index, row_index, value);
+    state->status = COMPLETED;
 }
 
-void execute_count(Dataframe* df, int column_index, int comparison_operator, double value) {
-    if (column_index < 0 || column_index >= df->num_cols) {
-        perror("COUNT Error: Column index out of range");
-        exit(1);
+void execute_count(Dataframe* df, ExecutionState* state, time_t timeout) {
+    
+    int column_index = state->query->column_index;
+    int comparison_operator = (int)state->query->arg1;
+    double value = state->query->arg2;
+    
+    time_t start_time = now();
+    
+    // housekeeping
+    if (state->status == CREATED) {
+        state->status = INPROGRESS;
+        state->stream_position = df->header_length;
+        state->processed_rows = 0;
+        state->tally = 0;
+
+        if (column_index < 0 || column_index >= df->num_cols) {
+            perror("COUNT Error: Column index out of range");
+            exit(1);
+        }
     }
     
-    // seek to beginning of file
-    fseek(df->file, 0, SEEK_SET);
-    
-    // ignore the header row
-    next_line(df->file);
+    // seek to last position in file stream
+    fseek(df->file, state->stream_position, SEEK_SET);
 
     // for each column, find the column_index-th comma
     char buffer[df->cell_length + 1];
-    int result = 0;
 
     // in each row, find the value at column_index
-    for (int i = 0; i < df->num_rows - 1; i++) {
+    while (
+        (state->processed_rows < df->num_rows - 1)
+         && (now() - start_time < timeout)
+    ) {
         read_value_at_column(df->file, column_index, buffer);
-        result += compare(atof(buffer), comparison_operator, value);
+        if (compare(atof(buffer), comparison_operator, value)) {
+            state->tally += 1;
+        }
         next_line(df->file);
+        state->processed_rows++;
     }
 
-    printf("COUNT(%d, %c, %f): %d\n", column_index, (char)comparison_operator, value, result);
+    if (state->processed_rows == df->num_rows - 1) {
+        state->status = COMPLETED;
+    } else {
+        // save position in file stream for next call
+        state->stream_position = ftell(df->file);
+
+        // swap context
+        return;
+    }
+
+    printf("COUNT(%d, %c, %f): %d\n", column_index, (char)comparison_operator, value, (int)state->tally);
 }
 
 void cleanup(Dataframe* df) {

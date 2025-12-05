@@ -169,3 +169,15 @@ void write_at(Dataframe* df, int row, int col, char* value) {
     fwrite(value, sizeof(char), df->cell_length, df->file);
     fflush(df->file);
 }
+
+/**
+ * Get current time in milliseconds since epoch
+ * 
+ * \return  milliseconds since epoch
+ */
+time_t now() {
+    // Citation: https://stackoverflow.com/a/51336144
+    struct timeval current_time;
+    gettimeofday(&current_time, NULL);
+    return (current_time.tv_sec * 1000) + (current_time.tv_usec / 1000);
+}

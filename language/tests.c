@@ -24,6 +24,7 @@ int main() {
     };
 
     // test utility funcs
+    printf("Current time: %ld\n", now());
     char buffer[19];
     read_at(&df, 2, 3, buffer);
     printf("Value at (row 2, col 3): %s\n", buffer);
@@ -33,11 +34,30 @@ int main() {
     printf("New value at (row 2, col 3): %s\n\n", buffer);
 
 
+    // test queries with time slicing & context swapping
+    ExecutionState states[6];
+    Query parsed_queries[6];
+
     for (int i = 0; i < 6; i++) {
-        Query query;
-        parse(queries[i], &query);
-        execute(&df, &query);
+        states[i].status = CREATED;
+        parse(queries[i], &parsed_queries[i]);
+        states[i].query = &parsed_queries[i];
     }
+
+    // fair round-robin scheduling until all queries complete
+    time_t timeout = 100; // 100ms per query slice
+    int completed = 0;
+    do {
+        for (int i = 0; i < 6; i++) {
+            if (states[i].status == COMPLETED) continue;
+            
+            // run each query for 100ms
+            execute(&df, &states[i], timeout);
+            if (states[i].status == COMPLETED) {
+                completed++;
+            }
+        }
+    } while (completed < 6);
 
     cleanup(&df);
     return 0;

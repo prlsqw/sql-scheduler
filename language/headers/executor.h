@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <sys/time.h>
 
 typedef struct {
     // number of rows in the dataframe
@@ -28,31 +29,37 @@ typedef struct {
 } Dataframe;
 
 typedef struct {
-    // current row
-    int curr_row_index;
+    // user query is a part of execution state
+    Query* query;
 
-    // current calculation
-    double result;
+    // to keep track of how much work was done previously
+    int processed_rows;
 
-    // rows counted so far
-    int tally;
-} Savestate_avg;
+    // intermediate result storage
+    double tally;
+
+    // execution status
+    enum { CREATED, INPROGRESS, COMPLETED } status;
+
+    // position in file stream
+    long stream_position;
+} ExecutionState;
 
 void initialize(Dataframe* df, const char* file_path);
 
-void execute(Dataframe* df, Query* query);
+void execute(Dataframe* df, ExecutionState* state, time_t timeout);
 
-void execute_average(Dataframe* df, int column_index);
+void execute_average(Dataframe* df, ExecutionState* state, time_t timeout);
 
-void execute_median(Dataframe* df, int column_index);
+void execute_median(Dataframe* df, ExecutionState* state, time_t timeout);
 
-void execute_increment(Dataframe* df, int column_index, double value);
+void execute_increment(Dataframe* df, ExecutionState* state, time_t timeout);
 
-void execute_write(Dataframe* df, int column_index, double value);
+void execute_write(Dataframe* df, ExecutionState* state, time_t timeout);
 
-void execute_write_at(Dataframe* df, int column_index, int row_index, double value);
+void execute_write_at(Dataframe* df, ExecutionState* state, time_t timeout);
 
-void execute_count(Dataframe* df, int column_index, int comparison_operator, double value);
+void execute_count(Dataframe* df, ExecutionState* state, time_t timeout);
 
 void cleanup(Dataframe* df);
 
