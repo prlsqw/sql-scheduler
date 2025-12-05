@@ -5,3 +5,4 @@ TabWidth: 4
 BreakBeforeBraces: Attach
 IndentCaseLabels: true
 ColumnLimit: 80
+InsertNewlineAtEOF: true
