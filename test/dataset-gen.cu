@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <curand_kernel.h>
+#include <fcntl.h>
+#include <unistd.h>
 
 #define FIRST_COL_NAME "0"
 #define DEFAULT_SEED 67
@@ -19,7 +21,8 @@ __global__ void generate_dataset(int* data, int seed, curandState* state) {
   data[THREAD_I] = num;
 }
 
-// TODO: make extern
+// TODO: make extern so we can call in tests.c
+// TODO: doesn't work with excessive amt of rows or cols
 int main(int argc, char* argv[]) {
   // get col, row count from args
   if (argc < 4 || argc > 5) {
@@ -51,7 +54,11 @@ int main(int argc, char* argv[]) {
   // run kernel on gpu csv
   generate_dataset<<<num_rows, num_cols>>>(gpu_data, seed, devStates);
 
-  // construct column name header
+
+  // start writing csv file
+  int csv_fd = open(output_path, O_CREAT|O_WRONLY|O_TRUNC, S_IRUSR|S_IWUSR);
+
+  // construct column header
   // first row is 0, ..., n
   int max_name_len = strlen(argv[2]) + 1;
   int col_header_len = max_name_len * num_cols;
@@ -63,8 +70,13 @@ int main(int argc, char* argv[]) {
     sprintf(next_col_name, ",%d", i);
     strcat(col_header, next_col_name);
   }
+  strcat(col_header, "\n");
 
-  // Wait for the kernel to finish
+  const int MAX_LINE_LEN = (DIGITS + 1) * num_cols + 2;
+  char file_buffer[col_header_len + MAX_LINE_LEN * num_rows + 100];
+  strcat(file_buffer, col_header);
+
+  // wait for the kernel to finish
   if(cudaDeviceSynchronize() != cudaSuccess) {
     fprintf(stderr, "CUDA Error: %s\n", cudaGetErrorString(cudaPeekAtLastError()));
     exit(EXIT_FAILURE);
@@ -76,13 +88,26 @@ int main(int argc, char* argv[]) {
     fprintf(stderr, "Failed to copy data back from GPU\n");
     exit(EXIT_FAILURE);
   }
+  char buffer[MAX_LINE_LEN];
+  char temp[DIGITS + 1];
+
   for (int row = 0; row < num_rows; row++) {
-    printf("%d", data[row][0]);
+    sprintf(buffer, "%d", data[row][0]);
     for (int col = 1; col < num_cols; col++) {
-      printf(" %d", data[row][col]);
+      sprintf(temp, ",%d", data[row][col]);
+      strcat(buffer, temp);
     }
-    printf("\n");
+    strcat(buffer, "\n");
+    
+    strcat(file_buffer, buffer);
   }
 
-  // write to file
+  write(csv_fd, file_buffer, strlen(file_buffer));
+
+  // cleanup
+  close(csv_fd);
+
+  free(col_header);
+  cudaFree(gpu_data);
+  cudaFree(devStates);
 }
