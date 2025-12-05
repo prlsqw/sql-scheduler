@@ -9,6 +9,7 @@
 
 # ignore executable files
 lang
+test/dataset-gen
 
 
 # ignore data files for now, since might be too big
