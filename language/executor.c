@@ -135,14 +135,82 @@ void execute_median(Dataframe* df, ExecutionState* state, time_t timeout) {
 void execute_increment(Dataframe* df, ExecutionState* state, time_t timeout) {
     int column_index = state->query->column_index;
     double value = state->query->arg1;
-    printf("Executing INCREMENT on column %d by %f\n", column_index, value);
-    state->status = COMPLETED;
+    time_t start_time = now();
+
+    // housekeeping if call is the first one
+    if (state->status == CREATED) {
+        state->processed_rows = 0;
+        state->status = INPROGRESS;
+
+        // sanity check
+        if (column_index < 0 || column_index >= df->num_cols) {
+            perror("Increment Error: Column index out of range");
+            exit(1);
+        }
+    }
+    char buffer[df->cell_length + 1];
+    
+    while (
+        (state->processed_rows < df->num_rows - 1)
+         && (now() - start_time < timeout)
+    ) {    
+        // 1) Read current value at (row, col).
+        read_at(df, state->processed_rows, column_index, buffer);
+
+        // 2) Convert to double and increment.
+        double current = atof(buffer);
+        double updated = current + value;
+
+        state->query->arg1 = state->processed_rows;
+        state->query->arg2 = updated;
+        // 3) Write the updated value back. (Write at handles truncation and padding)
+        execute_write_at(df, state, timeout);
+        state->processed_rows++;
+    }
+    if (state->processed_rows == df->num_rows - 1) {
+        state->status = COMPLETED;
+    } else {
+        state->query->arg1 = value;
+        // swap context
+        return;
+    }
+    printf("INCREMENT(%d, %f)\n", column_index, value);
 }
 
 void execute_write(Dataframe* df, ExecutionState* state, time_t timeout) {
     int column_index = state->query->column_index;
     double value = state->query->arg1;
-    printf("Executing WRITE on column %d with value %f\n", column_index, value);
+    time_t start_time = now();
+
+    // housekeeping if call is the first one
+    if (state->status == CREATED) {
+        state->processed_rows = 0;
+        state->status = INPROGRESS;
+
+        // sanity check
+        if (column_index < 0 || column_index >= df->num_cols) {
+            perror("WRITE Error: Column index out of range");
+            exit(1);
+        }
+    }
+
+     while (
+        (state->processed_rows < df->num_rows - 1)
+         && (now() - start_time < timeout)
+    ) {
+        state->query->arg1 = state->processed_rows;
+        state->query->arg2 = value;
+        execute_write_at(df, state, timeout);
+        state->processed_rows++;
+    }
+    if (state->processed_rows == df->num_rows - 1) {
+        state->status = COMPLETED;
+    } else {
+        state->query->arg1 = value;
+        // swap context
+        return;
+    }
+    printf("WRITE( %d, %f)\n", column_index, value);
     state->status = COMPLETED;
 }
 
@@ -150,8 +218,37 @@ void execute_write_at(Dataframe* df, ExecutionState* state, time_t timeout) {
     int column_index = state->query->column_index;
     int row_index = (int)state->query->arg1;
     double value = state->query->arg2;
-    printf("Executing WRITE_AT on column %d at row %d with value %f\n", column_index, row_index, value);
-    state->status = COMPLETED;
+    // local flag to keep track of printing WRITE_AT only when the user calls it
+    int user_called_write_at = 0;
+
+    // housekeeping if call is the first one
+    if (state->status == CREATED) {
+        state->status = INPROGRESS;
+
+        // sanity check
+        if (column_index < 0 || column_index >= df->num_cols) {
+            perror("WRITE_AT Error: Column index out of range");
+            exit(1);
+        }
+        if (row_index < 0 || row_index >= df->num_rows) {
+            perror("WRITE_AT Error: Row index out of range");
+            exit(1);
+        }
+
+        user_called_write_at = 1;
+    }
+
+    char cell[df->cell_length + 1];
+    
+    align_num(value, cell, df->cell_length);
+    
+    // Actually write at (row_index, column_index).
+    write_at(df, row_index, column_index, cell);
+
+    if(user_called_write_at == 1){
+        printf("WRITE_AT(%d, %d, %f)\n", column_index, row_index, value);
+        state->status = COMPLETED;
+    }
 }
 
 void execute_count(Dataframe* df, ExecutionState* state, time_t timeout) {
