@@ -49,18 +49,6 @@ void initialize(Dataframe *df, const char *file_path);
 
 void execute(Dataframe *df, ExecutionState *state, time_t timeout);
 
-void execute_average(Dataframe *df, ExecutionState *state, time_t timeout);
-
-void execute_median(Dataframe *df, ExecutionState *state, time_t timeout);
-
-void execute_increment(Dataframe *df, ExecutionState *state, time_t timeout);
-
-void execute_write(Dataframe *df, ExecutionState *state, time_t timeout);
-
-void execute_write_at(Dataframe *df, ExecutionState *state, time_t timeout);
-
-void execute_count(Dataframe *df, ExecutionState *state, time_t timeout);
-
 void cleanup(Dataframe *df);
 
 #endif
