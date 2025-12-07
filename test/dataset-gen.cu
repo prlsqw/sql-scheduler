@@ -90,6 +90,7 @@ int main(int argc, char* argv[]) {
       printf(".");
       fflush(stdout);
     }
+    // TODO: leftpad data with zeroes
     fprintf(csv_file_ptr, "%d", data[row * num_cols]);
     for (int col = 1; col < num_cols; col++) {
       fprintf(csv_file_ptr, ",%d", data[row * num_cols + col]);
@@ -99,6 +100,7 @@ int main(int argc, char* argv[]) {
   printf("\ndone writing!\n");
 
   // cleanup
+  free(data);
   fclose(csv_file_ptr);
   cudaFree(gpu_data);
   cudaFree(devStates);

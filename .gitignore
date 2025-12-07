@@ -10,6 +10,7 @@
 # ignore executable files
 lang
 test/dataset-gen
+test/queries-gen
 
 
 # ignore data files for now, since might be too big
