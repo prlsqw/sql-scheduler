@@ -22,7 +22,6 @@ __global__ void generate_dataset(int* data, int seed, curandState* state) {
 }
 
 // TODO: make extern so we can call in tests.c
-// TODO: doesn't work with excessive amt of rows or cols
 int main(int argc, char* argv[]) {
   // get col, row count from args
   if (argc < 4 || argc > 5) {
@@ -31,8 +30,9 @@ int main(int argc, char* argv[]) {
   }
 
   char* output_path = argv[1];
+  const char* cols_arg = argv[3];
   int num_rows = atoi(argv[2]);
-  int num_cols = atoi(argv[3]);
+  int num_cols = atoi(cols_arg);
   int seed = argc == 5 ? atoi(argv[4]) : DEFAULT_SEED;
 
   int num_data = num_rows * num_cols;
@@ -46,35 +46,28 @@ int main(int argc, char* argv[]) {
 
   // create curand states
   curandState* devStates;
+  // TODO: cuRAND state malloc breaks on excessive data, find workaround
   if (cudaMalloc(&devStates, sizeof(curandState) * num_data) != cudaSuccess) {
     fprintf(stderr, "Failed to allocate cuRAND state on GPU\n");
     exit(EXIT_FAILURE);
   }
 
+  printf("generating on gpu...\n");
   // run kernel on gpu csv
   generate_dataset<<<num_rows, num_cols>>>(gpu_data, seed, devStates);
 
-
   // start writing csv file
-  int csv_fd = open(output_path, O_CREAT|O_WRONLY|O_TRUNC, S_IRUSR|S_IWUSR);
+  FILE* csv_file_ptr = fopen(output_path, "w");
 
   // construct column header
-  // first row is 0, ..., n
-  int max_name_len = strlen(argv[2]) + 1;
-  int col_header_len = max_name_len * num_cols;
-  char* col_header = (char*) malloc(sizeof(char) * col_header_len);
+  // first row is 0, ..., n - 1
+  int max_name_len = strlen(cols_arg) + 1 + 1;
 
-  strcpy(col_header, FIRST_COL_NAME);
-  char next_col_name[max_name_len + 1];
+  fprintf(csv_file_ptr, "%s", FIRST_COL_NAME);
   for (int i = 1; i < num_cols; i++) {
-    sprintf(next_col_name, ",%d", i);
-    strcat(col_header, next_col_name);
+    fprintf(csv_file_ptr, ",%d", i);
   }
-  strcat(col_header, "\n");
-
-  const int MAX_LINE_LEN = (DIGITS + 1) * num_cols + 2;
-  char file_buffer[col_header_len + MAX_LINE_LEN * num_rows + 100];
-  strcat(file_buffer, col_header);
+  fprintf(csv_file_ptr, "\n");
 
   // wait for the kernel to finish
   if(cudaDeviceSynchronize() != cudaSuccess) {
@@ -83,31 +76,30 @@ int main(int argc, char* argv[]) {
   }
 
   // copy back csv array
-  int data[num_rows][num_cols];
+  int* data = (int*) malloc(sizeof(int) * num_data);
   if (cudaMemcpy(data, gpu_data, sizeof(int) * num_data, cudaMemcpyDeviceToHost) != cudaSuccess) {
     fprintf(stderr, "Failed to copy data back from GPU\n");
     exit(EXIT_FAILURE);
   }
-  char buffer[MAX_LINE_LEN];
-  char temp[DIGITS + 1];
 
+  printf("writing to file...\n");
+
+  const int print_threshold = num_rows / 10;
   for (int row = 0; row < num_rows; row++) {
-    sprintf(buffer, "%d", data[row][0]);
-    for (int col = 1; col < num_cols; col++) {
-      sprintf(temp, ",%d", data[row][col]);
-      strcat(buffer, temp);
+    if (row % print_threshold == 0) {
+      printf(".");
+      fflush(stdout);
     }
-    strcat(buffer, "\n");
-    
-    strcat(file_buffer, buffer);
+    fprintf(csv_file_ptr, "%d", data[row * num_cols]);
+    for (int col = 1; col < num_cols; col++) {
+      fprintf(csv_file_ptr, ",%d", data[row * num_cols + col]);
+    }
+    fprintf(csv_file_ptr, "\n");
   }
-
-  write(csv_fd, file_buffer, strlen(file_buffer));
+  printf("\ndone writing!\n");
 
   // cleanup
-  close(csv_fd);
-
-  free(col_header);
+  fclose(csv_file_ptr);
   cudaFree(gpu_data);
   cudaFree(devStates);
 }
