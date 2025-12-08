@@ -2,6 +2,9 @@
 #include <stdlib.h>
 #include <curand_kernel.h>
 #include "../language/headers/grammar.h"
+extern "C" {
+  #include "../language/headers/executor.h"
+}
 
 #define ARRAY_LEN(array) sizeof(array) / sizeof(array[0])
 
@@ -51,12 +54,6 @@ int max_operation_len() {
   return max;
 }
 
-int amt_digits(unsigned int num) {
-  if (num < 10)
-    return 1;
-  return 1 + amt_digits(num / 10);
-}
-
 int main(int argc, char *argv[]) {
   // get csv path from args
   if (argc != 4) {
@@ -64,38 +61,14 @@ int main(int argc, char *argv[]) {
     exit(EXIT_FAILURE);
   }
   const char *csv_path = argv[1];
-  FILE *csv_file_ptr = fopen(csv_path, "r");
-  if (csv_file_ptr == NULL) {
-    perror("Error opening CSV file");
-    exit(EXIT_FAILURE);
-  }
+  Dataframe df;
+  initialize(&df, csv_path);
+  // save data from dataframe
+  const int num_rows = df.num_rows;
+  const int num_cols = df.num_cols;
+  const int num_digits = df.cell_length;
 
-  char c;
-  // get # of cols from csv
-  int num_cols = 0;
-  do {
-    c = fgetc(csv_file_ptr);
-    if (c == '\n')
-      break;
-    if (num_cols == 0 || c == ',')
-      num_cols++;
-  } while (c != EOF);
-
-  // get # of rows and # of digits from csv
-  int num_rows = 0;
-  int num_digits = 0;
-  bool found_digits = false;
-  do {
-    c = fgetc(csv_file_ptr);
-    if (c == '\n')
-      num_rows++;
-    if (c == ',')
-      found_digits = true;
-    if (!found_digits)
-      num_digits++;
-  } while (c != EOF);
-
-  fclose(csv_file_ptr);
+  cleanup(&df);
 
   const char *num_queries_arg = argv[3];
   const int NUM_QUERIES = atoi(num_queries_arg);

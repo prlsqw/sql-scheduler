@@ -26,7 +26,6 @@ The grammar of this DSL is defined as:
 #define GRAMMAR_H 1
 
 static const char* ComparisonOps[] = { "<", "<=", "!", "=", ">=", ">" };
-#define NUM_CMP 6
 
 typedef enum {
 	AVERAGE,
