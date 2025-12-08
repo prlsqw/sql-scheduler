@@ -36,7 +36,6 @@ int main() {
 		states[i].status = CREATED;
 		parse(queries[i], &parsed_queries[i]);
 		states[i].query = &parsed_queries[i];
-		states[i].values = NULL;
 	}
 
 	// fair round-robin scheduling until all queries complete
