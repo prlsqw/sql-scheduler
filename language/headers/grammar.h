@@ -25,6 +25,8 @@ The grammar of this DSL is defined as:
 #ifndef GRAMMAR_H
 #define GRAMMAR_H 1
 
+static const char *ComparisonOps[] = {"<", "<=", "!", "=", ">=", ">"};
+
 typedef enum {
 	AVERAGE,
 	MEDIAN,
@@ -34,6 +36,9 @@ typedef enum {
 	COUNT,
 	NONE
 } Operation;
+
+static const char *QueryOps[] = {"AVERAGE", "MEDIAN",	"INCREMENT",
+								 "WRITE",	"WRITE_AT", "COUNT"};
 
 // post-parse query structure
 typedef struct {

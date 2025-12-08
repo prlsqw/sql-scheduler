@@ -10,7 +10,10 @@
 # ignore executable files
 language-test
 scheduler-test
+dataset-gen
+queries-gen
 
 
 # ignore data files for now, since might be too big
 data/*.csv
+data/*.queries

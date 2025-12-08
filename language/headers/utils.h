@@ -1,6 +1,8 @@
 #include "executor.h"
 #include <sys/time.h>
 
+#define ARRAY_LEN(array) sizeof(array) / sizeof(array[0])
+
 /**
  * Split the given string at the first occurence of the given character
  * by replacing it with a null terminator. Throws an error if the character

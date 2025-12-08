@@ -1,4 +1,4 @@
-.PHONY: language scheduler language-lib scheduler-lib clean format
+.PHONY: language scheduler language-lib scheduler-lib clean format gen
 
 language:
 	clang -o language-test language/tests.c language/executor.c language/parser.c language/utils.c
@@ -15,6 +15,14 @@ scheduler-lib:
 	make language-lib
 	clang -c scheduler/scheduler.c -o scheduler/scheduler.o
 	clang -c scheduler/job_queue.c -o scheduler/job_queue.o
+
+gen:
+	nvcc -o dataset-gen gen/dataset-gen.cu language/utils.c
+	nvcc -o queries-gen gen/queries-gen.cu language/executor.c language/utils.c
+
+gen:
+	nvcc -o dataset-gen gen/dataset-gen.cu language/utils.c
+	nvcc -o queries-gen gen/queries-gen.cu language/executor.c language/utils.c
 
 clean:
 	rm -f language-test
