@@ -7,7 +7,8 @@ extern "C" {
   #include "../language/headers/utils.h"
 }
 
-#define ARRAY_LEN(array) sizeof(array) / sizeof(array[0])
+__device__ const int NUM_OPS = ARRAY_LEN(QueryOps);
+__device__ const int NUM_CMP = ARRAY_LEN(ComparisonOps);
 
 typedef struct {
   int rows;
@@ -15,8 +16,6 @@ typedef struct {
   Query *output_buff;
   int seed;
   curandState *state;
-  int num_ops;
-  int num_cmp;
   int num_digits;
 } KernelInput;
 // 1D kernel
@@ -24,7 +23,7 @@ typedef struct {
 __global__ void generate_queries(KernelInput input) {
   curand_init(input.seed, threadIdx.x, 0, &input.state[threadIdx.x]);
   curandState local_state = input.state[threadIdx.x];
-  const int op_i = (int)(input.num_ops * curand_uniform_double(&local_state));
+  const int op_i = (int)(NUM_OPS * curand_uniform_double(&local_state));
   const int col_i = (int)(input.cols * curand_uniform_double(&local_state));
   Query output_query = (Query){
     operation : (Operation)op_i,
@@ -35,7 +34,7 @@ __global__ void generate_queries(KernelInput input) {
   if (op_i >= Operation::INCREMENT && op_i <= Operation::WRITE) {
     output_query.arg1 = pow(10, input.num_digits) * curand_uniform_double(&local_state);
   } else if (op_i >= Operation::WRITE_AT) {
-    const int choices = op_i == Operation::WRITE_AT ? input.rows : input.num_cmp;
+    const int choices = op_i == Operation::WRITE_AT ? input.rows : NUM_CMP;
     output_query.arg1 = (int)(choices * curand_uniform_double(&local_state));
     output_query.arg2 = pow(10, input.num_digits) * curand_uniform_double(&local_state);
   }
@@ -98,8 +97,6 @@ int main(int argc, char *argv[]) {
       output_buff: gpu_output_buff,
       seed: seed,
       state: gpu_state,
-      num_ops: ARRAY_LEN(QueryOps),
-      num_cmp: ARRAY_LEN(ComparisonOps),
       num_digits: num_digits
     };
   generate_queries<<<1, NUM_QUERIES>>>(input);
