@@ -1,22 +1,21 @@
 #include "scheduler.h"
-#include <unistd.h>
 #include <stdio.h>
+#include <unistd.h>
 
 int main() {
 
 	JobQueue queue;
 	initialize_job_queue(&queue);
-	
-	char* csv_file = "data/test1.csv";
+
+	char *csv_file = "data/test1.csv";
 	char queries[][50] = {"AVERAGE ( 0) ",		  "MEDIAN(  5   )",
 						  "INCREMENT(3,10)",	  "WRITE      ( 1 , 42 )",
 						  "WRITE_AT(0, 7, 3.14)", "COUNT(4, >=, 2.71)"};
 
-
 	printf("Test 1: Round Robin Scheduling\n");
 	Dataframe df;
 	Scheduler scheduler;
-	
+
 	// need to rename initialize to something else bc what are we initializing?
 	initialize(&df, csv_file);
 	initialize_scheduler(&scheduler, DEFAULT_QUANTUM, RR, &df);
