@@ -9,7 +9,7 @@ language-lib:
 	clang -c language/utils.c -o language/utils.o
 
 scheduler:
-	clang -o scheduler-test scheduler/tests.c scheduler/scheduler.c scheduler/job_queue.c language/executor.c language/utils.c
+	clang -o scheduler-test scheduler/tests.c scheduler/scheduler.c scheduler/job_queue.c language/executor.c language/parser.c language/utils.c
 
 scheduler-lib:
 	make language-lib
