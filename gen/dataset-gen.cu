@@ -54,7 +54,6 @@ int main(int argc, char* argv[]) {
     exit(EXIT_FAILURE);
   }
 
-  printf("generating on gpu...\n");
   // run kernel on gpu csv
   generate_dataset<<<num_rows, num_cols>>>(gpu_data, seed, digits, devStates);
 
@@ -84,14 +83,7 @@ int main(int argc, char* argv[]) {
     exit(EXIT_FAILURE);
   }
 
-  printf("writing to file...\n");
-
-  const int print_threshold = num_rows / 10;
   for (int row = 0; row < num_rows; row++) {
-    if (row % print_threshold == 0) {
-      printf(".");
-      fflush(stdout);
-    }
     // TODO: leftpad data with zeroes
     fprintf(csv_file_ptr, "%d", data[row * num_cols]);
     for (int col = 1; col < num_cols; col++) {
@@ -99,7 +91,6 @@ int main(int argc, char* argv[]) {
     }
     fprintf(csv_file_ptr, "\n");
   }
-  printf("\ndone writing!\n");
 
   // cleanup
   free(data);
