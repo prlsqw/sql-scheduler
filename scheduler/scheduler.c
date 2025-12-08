@@ -3,9 +3,7 @@
 
 void initialize_scheduler(Scheduler *scheduler, time_t quantum,
 						  SchAlgorithm algorithm) {
-	if (scheduler == NULL) {
-		return -1; // Error: NULL pointer
-	}
+	if (scheduler == NULL) return;
 
 	scheduler->quantum = quantum;
 	switch (algorithm) {
