@@ -31,9 +31,9 @@ __global__ void generate_queries(KernelInput input) {
     arg1 : -1.0,
     arg2 : -1.0
   };
-  if (op_i >= Operation::INCREMENT && op_i <= Operation::WRITE) {
+  if (op_i == Operation::INCREMENT || op_i == Operation::WRITE) {
     output_query.arg1 = pow(10, input.num_digits) * curand_uniform_double(&local_state);
-  } else if (op_i >= Operation::WRITE_AT) {
+  } else if (op_i == Operation::WRITE_AT || op_i == Operation::COUNT) {
     const int choices = op_i == Operation::WRITE_AT ? input.rows : NUM_CMP;
     output_query.arg1 = (int)(choices * curand_uniform_double(&local_state));
     output_query.arg2 = pow(10, input.num_digits) * curand_uniform_double(&local_state);
