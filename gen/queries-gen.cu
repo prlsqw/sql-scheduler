@@ -45,10 +45,10 @@ __global__ void generate_queries(KernelInput input) {
 
 // returns maximum length of an Operation
 int max_operation_len() {
-  int max = strlen(OpArray[0]);
+  int max = strlen(QueryOps[0]);
   int curr;
-  for (int i = 1; i < ARRAY_LEN(OpArray); i++) {
-    curr = strlen(OpArray[i]);
+  for (int i = 1; i < ARRAY_LEN(QueryOps); i++) {
+    curr = strlen(QueryOps[i]);
     if (curr > max)
       max = curr;
   }
@@ -98,7 +98,7 @@ int main(int argc, char *argv[]) {
       output_buff: gpu_output_buff,
       seed: seed,
       state: gpu_state,
-      num_ops: ARRAY_LEN(OpArray),
+      num_ops: ARRAY_LEN(QueryOps),
       num_cmp: ARRAY_LEN(ComparisonOps),
       num_digits: num_digits
     };
@@ -133,16 +133,16 @@ int main(int argc, char *argv[]) {
     switch (curr.operation) {
       case Operation::INCREMENT:
       case Operation::WRITE:
-        fprintf(queries_file_ptr, "%s(%d, %f)\n", OpArray[curr.operation], curr.column_index, curr.arg1, curr.arg2);
+        fprintf(queries_file_ptr, "%s(%d, %f)\n", QueryOps[curr.operation], curr.column_index, curr.arg1, curr.arg2);
         break;
       case Operation::WRITE_AT:
-        fprintf(queries_file_ptr, "%s(%d, %d, %f)\n", OpArray[curr.operation], curr.column_index, (int) curr.arg1, curr.arg2);
+        fprintf(queries_file_ptr, "%s(%d, %d, %f)\n", QueryOps[curr.operation], curr.column_index, (int) curr.arg1, curr.arg2);
         break;
       case Operation::COUNT:
-        fprintf(queries_file_ptr, "%s(%d, %s, %f)\n", OpArray[curr.operation], curr.column_index, ComparisonOps[(int) curr.arg1], curr.arg2);
+        fprintf(queries_file_ptr, "%s(%d, %s, %f)\n", QueryOps[curr.operation], curr.column_index, ComparisonOps[(int) curr.arg1], curr.arg2);
         break;
       default:
-        fprintf(queries_file_ptr, "%s(%d)\n", OpArray[curr.operation], curr.column_index, curr.arg1, curr.arg2);
+        fprintf(queries_file_ptr, "%s(%d)\n", QueryOps[curr.operation], curr.column_index, curr.arg1, curr.arg2);
     }
   }
   fclose(queries_file_ptr);

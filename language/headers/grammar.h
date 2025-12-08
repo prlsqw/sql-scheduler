@@ -37,7 +37,7 @@ typedef enum {
 	NONE
 } Operation;
 
-static const char* OpArray[] = {"AVERAGE", "MEDIAN", "INCREMENT", "WRITE", "WRITE_AT", "COUNT"};
+static const char* QueryOps[] = {"AVERAGE", "MEDIAN", "INCREMENT", "WRITE", "WRITE_AT", "COUNT"};
 
 // post-parse query structure
 typedef struct {
