@@ -231,3 +231,40 @@ void insert_sorted(double **values, int *count, int *capacity, double value) {
 	(*values)[insert_pos] = value;
 	(*count)++;
 }
+
+/**
+ * Align value for final cell to write with padding or truncation dependent on
+ * cell_length
+ *
+ * \param value         double that needs to be truncated or padded into
+ * cell_length
+ * \param cell          cell that stores our final output string which we will
+ * write with
+ * \param cell_length   length of cells in csv based on df struct
+ */
+void align_num(double value, char *cell, int cell_length) {
+	// 1. Convert the double to a string
+	char raw[MAX_DOUBLE_LENGTH];
+	snprintf(raw, sizeof(raw), "%.15g", value);
+
+	// 2. set up padding or truncation
+	int len = (int)strlen(raw);
+	// if too long, truncate
+	if (len >= cell_length) {
+		// Keep the first df->cell_length characters
+		for (int i = 0; i < cell_length; i++) {
+			cell[i] = raw[i];
+		}
+		cell[cell_length] = '\0';
+		// if too short, left-pad with 0s
+	} else {
+		int pad = cell_length - len;
+		for (int i = 0; i < pad; i++) {
+			cell[i] = '0';
+		}
+		for (int i = 0; i < len; i++) {
+			cell[pad + i] = raw[i];
+		}
+		cell[cell_length] = '\0';
+	}
+}
