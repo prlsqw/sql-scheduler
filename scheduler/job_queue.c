@@ -26,7 +26,7 @@ void double_job_queue_capacity(JobQueue *queue) {
 
 	memcpy(new_jobs, queue->jobs, queue->size * sizeof(Job *));
 	free(queue->jobs);
-    
+
 	queue->jobs = new_jobs;
 	queue->capacity = new_capacity;
 }
