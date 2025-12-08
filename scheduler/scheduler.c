@@ -2,7 +2,7 @@
 #include "algorithms.c"
 
 void initialize_scheduler(Scheduler *scheduler, time_t quantum,
-						  SchAlgorithm algorithm) {
+						  SchAlgorithm algorithm, Dataframe *df) {
 	if (scheduler == NULL)
 		return;
 
@@ -22,6 +22,7 @@ void initialize_scheduler(Scheduler *scheduler, time_t quantum,
 			exit(EXIT_FAILURE);
 	}
 
+	scheduler->df = df;
 	initialize_job_queue(&scheduler->queue);
 }
 
