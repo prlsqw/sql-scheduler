@@ -53,18 +53,32 @@ void add_job_to_queue(JobQueue *queue, Job *job) {
  * \param job  pointer to the job to be removed
  */
 void remove_job_from_queue(JobQueue *queue, Job *job) {
-	for (int i = 0; i < queue->size; i++) {
-		if (queue->jobs[i] == job) {
-			queue->jobs[i] = queue->jobs[queue->size - 1];
-			queue->jobs[queue->size - 1] = NULL;
-			queue->size--;
-			break;
-		}
+	int i = 0;
+
+	// find job position in the queue
+	while (i < queue->size && queue->jobs[i] != job) {
+		i++;
 	}
+
+	// if iterator was at the removed job, move it back one position
+	if (queue->iter > i) {
+		queue->iter--;
+	}
+
+	// shift remaining jobs left
+	for (; i < queue->size - 1; i++) {
+		queue->jobs[i] = queue->jobs[i + 1];
+	}
+
+	// decrease size
+	queue->size--;
+
+	// if iterator is now out of bounds, wrap it around
+	queue->iter = queue->iter == queue->size ? 0 : queue->iter;
 }
 
 /**
- * A JobQueue iterator
+ * A JobQueue iterator (in order of arrival time)
  *
  * \param queue  pointer to queue
  * \return       pointer to the next job, or NULL if the queue is empty
