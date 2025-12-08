@@ -43,6 +43,12 @@ typedef struct {
 
 	// position in file stream
 	long stream_position;
+
+	// values array for median
+	double *values;
+
+	// capacity of values array for median
+	int values_capacity;
 } ExecutionState;
 
 void initialize(Dataframe *df, const char *file_path);

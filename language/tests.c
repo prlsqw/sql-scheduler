@@ -20,7 +20,7 @@ int main() {
 
 	// test utility funcs
 	printf("Current time: %ld\n", now());
-	char buffer[19];
+	char buffer[20];
 	read_at(&df, 2, 3, buffer);
 	printf("Value at (row 2, col 3): %s\n", buffer);
 	write_at(&df, 2, 3, "147.33893178051888");

@@ -131,8 +131,68 @@ void execute_average(Dataframe *df, ExecutionState *state, time_t timeout) {
 
 void execute_median(Dataframe *df, ExecutionState *state, time_t timeout) {
 	int column_index = state->query->column_index;
-	printf("Executing MEDIAN on column %d\n", column_index);
+	time_t start_time = now();
+
+	// housekeeping if call is the first one
+	if (state->status == CREATED) {
+		state->processed_rows = 0;
+		state->tally = 0; // tracking count of values in array
+		state->status = INPROGRESS;
+
+		// position after header row to mark where to start
+		state->stream_position = df->header_length;
+
+		// allocate initial array for storing values
+		state->values_capacity = df->num_rows;
+		state->values = malloc(state->values_capacity * sizeof(double));
+		if (state->values == NULL) {
+			perror("MEDIAN Error: Memory allocation failed");
+			exit(1);
+		}
+
+		// sanity check
+		if (column_index < 0 || column_index >= df->num_cols) {
+			perror("MEDIAN Error: Column index out of range");
+			exit(1);
+		}
+	}
+
+	// buffer to store the value read from file
+	char buffer[df->cell_length + 1];
+
+	// in each row, find the value at column_index and insert into
+	// sorted array
+	while ((state->processed_rows < df->num_rows - 1) &&
+		   (now() - start_time < timeout)) {
+		read_at(df, state->processed_rows, column_index, buffer);
+		double value = atof(buffer);
+		int count = (int)state->tally;
+		insert_sorted(&state->values, &count, &state->values_capacity, value);
+		state->tally = (double)count;
+		state->processed_rows++;
+	}
+
+	if (state->processed_rows != df->num_rows - 1) {
+		// save position in file stream for next call
+		state->stream_position = ftell(df->file);
+
+		// swap context
+		return;
+	}
+
+	// done reading, now calculate median
 	state->status = COMPLETED;
+	double median;
+	int n = (int)state->tally;
+	if (n % 2 == 1) {
+		median = state->values[n / 2];
+	} else {
+		median = (state->values[n / 2 - 1] + state->values[n / 2]) / 2.0;
+	}
+
+	printf("MEDIAN(%d): %f\n", column_index, median);
+	free(state->values);
+	state->values = NULL;
 }
 
 void execute_increment(Dataframe *df, ExecutionState *state, time_t timeout) {

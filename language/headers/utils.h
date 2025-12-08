@@ -94,6 +94,16 @@ void write_at(Dataframe *df, int row, int col, char *value);
 time_t now();
 
 /**
+ * Insert the given value into the sorted array using binary search
+ *
+ * \param values     array to insert into
+ * \param count      number of elements in the array
+ * \param capacity   capacity of the array
+ * \param value      value to insert
+ */
+void insert_sorted(double **values, int *count, int *capacity, double value);
+
+/**
  * Align value for final cell to write with padding or truncation dependent on
  * cell_length
  *

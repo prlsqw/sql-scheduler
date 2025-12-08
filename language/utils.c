@@ -192,6 +192,47 @@ time_t now() {
 }
 
 /**
+ * Insert the given value into the sorted array using binary search
+ *
+ * \param values     array to insert into
+ * \param count      number of elements in the array
+ * \param capacity   capacity of the array
+ * \param value      value to insert
+ */
+void insert_sorted(double **values, int *count, int *capacity, double value) {
+	// double array size if array is full
+	if (*count >= *capacity) {
+		*capacity *= 2;
+		*values = realloc(*values, (*capacity) * sizeof(double));
+		if (*values == NULL) {
+			perror("insert_sorted Error: Memory reallocation failed");
+			exit(1);
+		}
+	}
+
+	// binary search to find intsert position of value
+	int insert_pos = 0;
+	int right = *count;
+	while (insert_pos < right) {
+		int mid = insert_pos + (right - insert_pos) / 2;
+		if ((*values)[mid] < value) {
+			insert_pos = mid + 1;
+		} else {
+			right = mid;
+		}
+	}
+
+	// shift all items to the right of insert_pos to make space
+	for (int i = *count; i > insert_pos; i--) {
+		(*values)[i] = (*values)[i - 1];
+	}
+
+	// insert the new value and increment count
+	(*values)[insert_pos] = value;
+	(*count)++;
+}
+
+/**
  * Align value for final cell to write with padding or truncation dependent on
  * cell_length
  *
