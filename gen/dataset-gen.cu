@@ -7,7 +7,6 @@ extern "C" {
   #include "../language/headers/utils.h"
 }
 
-#define FIRST_COL_NAME "0"
 #define DEFAULT_SEED (now())
 #define THREAD_I blockDim.x * blockIdx.x + threadIdx.x
 
@@ -64,11 +63,10 @@ int main(int argc, char* argv[]) {
   // first row is 0, ..., n - 1
   int max_name_len = strlen(cols_arg) + 1 + 1;
 
-  fprintf(csv_file_ptr, "%s", FIRST_COL_NAME);
-  for (int i = 1; i < num_cols; i++) {
-    fprintf(csv_file_ptr, ",%d", i);
+  for (int i = 0; i < num_cols - 1; i++) {
+    fprintf(csv_file_ptr, "%d,", i);
   }
-  fprintf(csv_file_ptr, "\n");
+  fprintf(csv_file_ptr, "%d\n", num_cols - 1);
 
   // wait for the kernel to finish
   if(cudaDeviceSynchronize() != cudaSuccess) {
