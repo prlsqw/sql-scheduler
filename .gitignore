@@ -9,9 +9,10 @@
 
 # ignore executable files
 lang
-gen/dataset-gen
-gen/queries-gen
+dataset-gen
+queries-gen
 
 
 # ignore data files for now, since might be too big
 data/*.csv
+data/*.queries
