@@ -42,18 +42,6 @@ __global__ void generate_queries(KernelInput input) {
   input.output_buff[threadIdx.x] = output_query;
 }
 
-// returns maximum length of an Operation
-int max_operation_len() {
-  int max = strlen(QueryOps[0]);
-  int curr;
-  for (int i = 1; i < ARRAY_LEN(QueryOps); i++) {
-    curr = strlen(QueryOps[i]);
-    if (curr > max)
-      max = curr;
-  }
-  return max;
-}
-
 int main(int argc, char *argv[]) {
   // get csv path from args
   if (argc < 4 || argc > 5) {
