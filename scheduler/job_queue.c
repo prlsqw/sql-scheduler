@@ -39,7 +39,7 @@ void double_job_queue_capacity(JobQueue *queue) {
  */
 void add_job_to_queue(JobQueue *queue, Job *job) {
 	if (queue->size >= queue->capacity) {
-		double_query_queue_capacity(queue);
+		double_job_queue_capacity(queue);
 	}
 
 	queue->jobs[queue->size] = job;
