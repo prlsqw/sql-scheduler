@@ -11,12 +11,11 @@ extern "C" {
 #define THREAD_I blockDim.x * blockIdx.x + threadIdx.x
 
 // row, column
-__global__ void generate_dataset(int* data, int seed, int digits, curandState* state) {
+__global__ void generate_dataset(double* data, int seed, int digits, curandState* state) {
   curand_init(seed, THREAD_I, 0, &state[THREAD_I]);
   curandState localState = state[THREAD_I];
   double rand = curand_uniform_double(&localState);
-  // curand_uniform_double EXCLUDES 0.0, INCLUDES 1.0, so subtract 1
-  int num = ((int) (pow(10.0, digits) * rand)) - 1;
+  double num = (pow(10.0, digits) - 1) * rand;
   // data will be row-major
   data[THREAD_I] = num;
 }
@@ -37,10 +36,9 @@ int main(int argc, char* argv[]) {
   int seed = argc == 6 ? atoi(argv[5]) : DEFAULT_SEED;
 
   int num_data = num_rows * num_cols;
-
   // create data array on gpu
-  int* gpu_data;
-  if (cudaMalloc(&gpu_data, sizeof(int) * num_data) != cudaSuccess) {
+  double* gpu_data;
+  if (cudaMalloc(&gpu_data, sizeof(double) * num_data) != cudaSuccess) {
     fprintf(stderr, "Failed to allocate CSV array on GPU\n");
     exit(EXIT_FAILURE);
   }
@@ -75,17 +73,19 @@ int main(int argc, char* argv[]) {
   }
 
   // copy back csv array
-  int* data = (int*) malloc(sizeof(int) * num_data);
-  if (cudaMemcpy(data, gpu_data, sizeof(int) * num_data, cudaMemcpyDeviceToHost) != cudaSuccess) {
+  double* data = (double*) malloc(sizeof(double) * num_data);
+  if (cudaMemcpy(data, gpu_data, sizeof(double) * num_data, cudaMemcpyDeviceToHost) != cudaSuccess) {
     fprintf(stderr, "Failed to copy data back from GPU\n");
     exit(EXIT_FAILURE);
   }
 
+  char to_write[digits + 1 + 1];
   for (int row = 0; row < num_rows; row++) {
-    // TODO: leftpad data with zeroes
-    fprintf(csv_file_ptr, "%d", data[row * num_cols]);
+    align_num(data[row * num_cols], to_write, digits);
+    fprintf(csv_file_ptr, "%s", to_write);
     for (int col = 1; col < num_cols; col++) {
-      fprintf(csv_file_ptr, ",%d", data[row * num_cols + col]);
+      align_num(data[row * num_cols + col], to_write, digits);
+      fprintf(csv_file_ptr, ",%s", to_write);
     }
     fprintf(csv_file_ptr, "\n");
   }
