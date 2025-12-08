@@ -129,11 +129,11 @@ int main(int argc, char *argv[]) {
   Query curr;
   for (int i = 0; i < NUM_QUERIES; i++) {
     curr = queries[i];
-    // TODO: write ops may write numbers that exceed cell length
+    // write ops may write numbers that exceed cell length, but parsers/executors will handle this case
     switch (curr.operation) {
       case Operation::INCREMENT:
       case Operation::WRITE:
-        fprintf(queries_file_ptr, "%s(%d, %f)\n", QueryOps[curr.operation], curr.column_index, curr.arg1, curr.arg2);
+        fprintf(queries_file_ptr, "%s(%d, %f)\n", QueryOps[curr.operation], curr.column_index, curr.arg1);
         break;
       case Operation::WRITE_AT:
         fprintf(queries_file_ptr, "%s(%d, %d, %f)\n", QueryOps[curr.operation], curr.column_index, (int) curr.arg1, curr.arg2);
@@ -142,7 +142,7 @@ int main(int argc, char *argv[]) {
         fprintf(queries_file_ptr, "%s(%d, %s, %f)\n", QueryOps[curr.operation], curr.column_index, ComparisonOps[(int) curr.arg1], curr.arg2);
         break;
       default:
-        fprintf(queries_file_ptr, "%s(%d)\n", QueryOps[curr.operation], curr.column_index, curr.arg1, curr.arg2);
+        fprintf(queries_file_ptr, "%s(%d)\n", QueryOps[curr.operation], curr.column_index);
     }
   }
   fclose(queries_file_ptr);
