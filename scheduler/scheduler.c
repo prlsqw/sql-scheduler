@@ -3,7 +3,8 @@
 
 void initialize_scheduler(Scheduler *scheduler, time_t quantum,
 						  SchAlgorithm algorithm) {
-	if (scheduler == NULL) return;
+	if (scheduler == NULL)
+		return;
 
 	scheduler->quantum = quantum;
 	switch (algorithm) {
