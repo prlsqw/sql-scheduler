@@ -26,6 +26,9 @@ int main() {
 		sleep(rand() % 5);
 		printf("Query '%s' arrived at %ld.\n", queries[i], now());
 
+		// TODO: find a way to free these queries later
+		// ideally this should be handled when job
+		// is removed from the job queue (bc completed)
 		Query *query = malloc(sizeof(Query));
 		parse(queries[i], query);
 		query_arrived(&scheduler, query);

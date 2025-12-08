@@ -3,6 +3,8 @@
 
 #include <string.h>
 
+// TODO: add, remove, double should be thread safe
+
 /**
  * Initialize the job queue
  *

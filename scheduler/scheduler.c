@@ -24,6 +24,10 @@ void initialize_scheduler(Scheduler *scheduler, time_t quantum,
 
 	scheduler->df = df;
 	initialize_job_queue(&scheduler->queue);
+
+	// TODO: start the actual scheduler algorithm in a new thread
+	// use pthreads and make sure the actual scheduler runs indepndent
+	// of this main thread.
 }
 
 int query_arrived(Scheduler *scheduler, Query *query) {
