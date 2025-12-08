@@ -4,17 +4,17 @@ language:
 	clang -o language-test language/tests.c language/executor.c language/parser.c language/utils.c
 
 language-lib:
-	clang -c language/executor.c -o language/executor.o -I language/headers
-	clang -c language/parser.c -o language/parser.o -I language/headers
-	clang -c language/utils.c -o language/utils.o -I language/headers
+	clang -c language/executor.c -o language/executor.o
+	clang -c language/parser.c -o language/parser.o
+	clang -c language/utils.c -o language/utils.o
 
 scheduler:
-	clang -o scheduler-test scheduler/tests.c scheduler/scheduler.c scheduler/job_queue.c language/executor.c language/utils.c -I scheduler/headers
+	clang -o scheduler-test scheduler/tests.c scheduler/scheduler.c scheduler/job_queue.c language/executor.c language/utils.c
 
 scheduler-lib:
 	make language-lib
-	clang -c scheduler/scheduler.c -o scheduler/scheduler.o -I scheduler/headers
-	clang -c scheduler/job_queue.c -o scheduler/job_queue.o -I scheduler/headers
+	clang -c scheduler/scheduler.c -o scheduler/scheduler.o
+	clang -c scheduler/job_queue.c -o scheduler/job_queue.o
 
 clean:
 	rm -f language-test
