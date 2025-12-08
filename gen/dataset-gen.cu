@@ -10,16 +10,14 @@ extern "C" {
 #define FIRST_COL_NAME "0"
 #define DEFAULT_SEED (now())
 #define THREAD_I blockDim.x * blockIdx.x + threadIdx.x
-// TODO: make not hard-coded
-#define DIGITS 6
 
 // row, column
-__global__ void generate_dataset(int* data, int seed, curandState* state) {
+__global__ void generate_dataset(int* data, int seed, int digits, curandState* state) {
   curand_init(seed, THREAD_I, 0, &state[THREAD_I]);
   curandState localState = state[THREAD_I];
   double rand = curand_uniform_double(&localState);
   // curand_uniform_double EXCLUDES 0.0, INCLUDES 1.0, so subtract 1
-  int num = ((int) (pow(10.0, DIGITS) * rand)) - 1;
+  int num = ((int) (pow(10.0, digits) * rand)) - 1;
   // data will be row-major
   data[THREAD_I] = num;
 }
@@ -27,16 +25,17 @@ __global__ void generate_dataset(int* data, int seed, curandState* state) {
 // TODO: make extern so we can call in tests.c
 int main(int argc, char* argv[]) {
   // get col, row count from args
-  if (argc < 4 || argc > 5) {
-    fprintf(stderr, "Usage: %s <output_path> <num_cols> <num_rows> <seed?>\n", argv[0]);
+  if (argc < 5 || argc > 6) {
+    fprintf(stderr, "Usage: %s <output_path> <num_rows> <num_cols> <digits> <seed?>\n", argv[0]);
     exit(EXIT_FAILURE);
   }
 
   char* output_path = argv[1];
-  const char* cols_arg = argv[3];
   int num_rows = atoi(argv[2]);
+  const char* cols_arg = argv[3];
   int num_cols = atoi(cols_arg);
-  int seed = argc == 5 ? atoi(argv[4]) : DEFAULT_SEED;
+  int digits = atoi(argv[4]);
+  int seed = argc == 6 ? atoi(argv[5]) : DEFAULT_SEED;
 
   int num_data = num_rows * num_cols;
 
@@ -57,7 +56,7 @@ int main(int argc, char* argv[]) {
 
   printf("generating on gpu...\n");
   // run kernel on gpu csv
-  generate_dataset<<<num_rows, num_cols>>>(gpu_data, seed, devStates);
+  generate_dataset<<<num_rows, num_cols>>>(gpu_data, seed, digits, devStates);
 
   // start writing csv file
   FILE* csv_file_ptr = fopen(output_path, "w");
