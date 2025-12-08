@@ -4,6 +4,7 @@
 #include "../language/headers/grammar.h"
 extern "C" {
   #include "../language/headers/executor.h"
+  #include "../language/headers/utils.h"
 }
 
 #define ARRAY_LEN(array) sizeof(array) / sizeof(array[0])
@@ -56,8 +57,8 @@ int max_operation_len() {
 
 int main(int argc, char *argv[]) {
   // get csv path from args
-  if (argc != 4) {
-    fprintf(stderr, "Usage: %s <csv_path> <output_path> <num_queries>\n", argv[0]);
+  if (argc < 4 || argc > 5) {
+    fprintf(stderr, "Usage: %s <csv_path> <output_path> <num_queries> <seed?>\n", argv[0]);
     exit(EXIT_FAILURE);
   }
   const char *csv_path = argv[1];
@@ -87,11 +88,15 @@ int main(int argc, char *argv[]) {
     exit(EXIT_FAILURE);
   }
 
+  // get seed
+  const int seed = argc == 5 ? atoi(argv[4]) : now();
+
+  // setup input and launch kernel
   KernelInput input = (KernelInput){
       rows: num_rows,
       cols: num_cols,
       output_buff: gpu_output_buff,
-      seed: 67,
+      seed: seed,
       state: gpu_state,
       num_ops: ARRAY_LEN(OpArray),
       num_cmp: ARRAY_LEN(ComparisonOps),

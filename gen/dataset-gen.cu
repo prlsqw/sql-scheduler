@@ -3,9 +3,12 @@
 #include <curand_kernel.h>
 #include <fcntl.h>
 #include <unistd.h>
+extern "C" {
+  #include "../language/headers/utils.h"
+}
 
 #define FIRST_COL_NAME "0"
-#define DEFAULT_SEED 67
+#define DEFAULT_SEED (now())
 #define THREAD_I blockDim.x * blockIdx.x + threadIdx.x
 // TODO: make not hard-coded
 #define DIGITS 6
