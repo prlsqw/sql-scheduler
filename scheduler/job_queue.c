@@ -14,6 +14,7 @@ void initialize_job_queue(JobQueue *queue) {
 	queue->size = 0;
 	queue->capacity = INITIAL_JOB_QUEUE_CAPACITY;
 	queue->iter = 0;
+	// TODO: needs to be changed to a linked list implementation
 	queue->jobs = (Job **)malloc(queue->capacity * sizeof(Job *));
 }
 
