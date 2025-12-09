@@ -8,7 +8,8 @@
 
 
 # ignore executable files
-lang
+language-test
+scheduler-test
 dataset-gen
 queries-gen
 
