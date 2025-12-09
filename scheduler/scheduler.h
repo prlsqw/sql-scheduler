@@ -39,7 +39,7 @@ typedef enum { RR, WRR, FIFO } SchAlgorithm;
 void initialize_scheduler(Scheduler *scheduler, time_t quantum,
 						  SchAlgorithm algorithm, Dataframe *df);
 
-int query_arrived(Scheduler *scheduler, Query *query);
+int schedule_query(Scheduler *scheduler, Query *query);
 
 void cleanup_scheduler(Scheduler *scheduler);
 

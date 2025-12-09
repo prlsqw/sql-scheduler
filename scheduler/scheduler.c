@@ -30,7 +30,7 @@ void initialize_scheduler(Scheduler *scheduler, time_t quantum,
 	// of this main thread.
 }
 
-int query_arrived(Scheduler *scheduler, Query *query) {
+int schedule_query(Scheduler *scheduler, Query *query) {
 	if (scheduler == NULL || query == NULL) {
 		return -1;
 	}

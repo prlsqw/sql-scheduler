@@ -30,7 +30,7 @@ int main() {
 		// is removed from the job queue (bc completed)
 		Query *query = malloc(sizeof(Query));
 		parse(queries[i], query);
-		query_arrived(&scheduler, query);
+		schedule_query(&scheduler, query);
 	}
 
 	return 0;
