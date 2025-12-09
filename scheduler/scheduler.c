@@ -1,53 +1,74 @@
 #include "scheduler.h"
-#include "algorithms.c"
 
-void initialize_scheduler(Scheduler *scheduler, time_t quantum,
-						  SchAlgorithm algorithm, Dataframe *df) {
-	if (scheduler == NULL)
-		return;
+#define REALLY_LARGE_QUANTUM 1000000
 
-	scheduler->quantum_ms = quantum;
-	switch (algorithm) {
-		case RR:
-			scheduler->algorithm = rr_scheduler;
-			break;
-		case WRR:
-			scheduler->algorithm = wrr_scheduler;
-			break;
-		case FIFO:
-			scheduler->algorithm = fifo_scheduler;
-			break;
-		default:
-			perror("Unknown scheduling algorithm");
-			exit(EXIT_FAILURE);
+/**
+ * Round Robin scheduling algorithm
+ *
+ * \param queue      pointer to job queue
+ * \param quantum    time slice for each job
+ * \param max_life   maximum life of the scheduler
+ */
+void rr_scheduler(JobQueue *queue, time_t quantum, time_t max_life) {
+	Job *job;
+	time_t end_time = now() + max_life;
+
+	// Run until max_life is reached and all queries are processed
+	while ((job = next_job(queue)) != NULL || now() < end_time) {
+		if (job != NULL) {
+			execute(job->df, job->state, quantum);
+
+			// Remove completed jobs from the queue
+			if (job->state->status == COMPLETED) {
+				remove_job_from_queue(queue, job);
+				free(job->state);
+				free(job);
+			}
+		}
 	}
-
-	scheduler->df = df;
-	initialize_job_queue(&scheduler->queue);
-
-	// TODO: start the actual scheduler algorithm in a new thread
-	// use pthreads and make sure the actual scheduler runs indepndent
-	// of this main thread.
 }
 
-int schedule_query(Scheduler *scheduler, Query *query) {
-	if (scheduler == NULL || query == NULL) {
-		return -1;
+/**
+ * Weighted Round Robin scheduling algorithm
+ *
+ * \param queue      pointer to job queue
+ * \param quantum    max time slice for each job (each job will take a
+ * 						certain % of quantum)
+ * \param max_life   maximum life of the scheduler
+ */
+void wrr_scheduler(JobQueue *queue, time_t quantum, time_t max_life) {
+	Job *job;
+	time_t end_time = now() + max_life;
+
+	while ((job = next_job(queue)) != NULL || now() < end_time) {
+		// ?? need to implement; right now this does not work.
 	}
-
-	// create a job for the query
-	Job *job = (Job *)malloc(sizeof(Job));
-	job->df = scheduler->df;
-	job->state = (ExecutionState *)malloc(sizeof(ExecutionState));
-	job->state->query = query;
-	job->state->status = CREATED;
-
-	add_job_to_queue(&scheduler->queue, job);
-	return 0;
 }
 
-void cleanup_scheduler(Scheduler *scheduler) {
-	if (scheduler == NULL)
-		return;
-	cleanup_job_queue(&scheduler->queue);
+/**
+ * First In First Out scheduling algorithm
+ *
+ * \param queue      pointer to job queue
+ * \param quantum    time slice for each job (does not matter for FIFO)
+ * \param max_life   maximum life of the scheduler
+ */
+void fifo_scheduler(JobQueue *queue, time_t quantum, time_t max_life) {
+	Job *job;
+	time_t end_time = now() + max_life;
+
+	while ((job = next_job(queue)) != NULL || now() < end_time) {
+		if (job != NULL) {
+			// execute job to completion
+			while (job->state->status != COMPLETED) {
+				execute(job->df, job->state, REALLY_LARGE_QUANTUM);
+			}
+
+			// since job is done,
+			remove_job_from_queue(queue, job);
+			// TODO: freeing jobs and job states should be handled by
+			// the job queue when jobs are removed
+			free(job->state);
+			free(job);
+		}
+	}
 }

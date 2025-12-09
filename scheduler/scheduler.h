@@ -35,7 +35,7 @@ typedef struct {
 // Round Robin, Weighted Round Robin, First In First Out
 typedef enum { RR, WRR, FIFO } SchAlgorithm;
 
-// Scheduler functions
+// Secretary functions
 void initialize_scheduler(Scheduler *scheduler, time_t quantum,
 						  SchAlgorithm algorithm, Dataframe *df);
 
