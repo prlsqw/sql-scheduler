@@ -65,6 +65,8 @@ void fifo_scheduler(JobQueue *queue, time_t quantum, time_t max_life) {
 
 			// since job is done,
 			remove_job_from_queue(queue, job);
+			// TODO: freeing jobs and job states should be handled by
+			// the job queue when jobs are removed
 			free(job->state);
 			free(job);
 		}
