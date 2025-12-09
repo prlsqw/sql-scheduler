@@ -4,7 +4,7 @@
 #include "../language/language.h"
 #include <sys/time.h>
 
-#define DEFAULT_QUANTUM 100
+#define DEFAULT_QUANTUM_MS 100
 
 // A job is a DataFrame along with its query's execution state
 typedef struct {
@@ -23,8 +23,7 @@ typedef struct {
 	// dataframe this scheduler is managing
 	Dataframe *df;
 
-	// in ms
-	time_t quantum;
+	time_t quantum_ms;
 
 	// max life; scheduler stops after this time if no new queries arrive
 	time_t max_life;

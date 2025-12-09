@@ -18,7 +18,7 @@ int main() {
 
 	// need to rename initialize to something else bc what are we initializing?
 	initialize(&df, csv_file);
-	initialize_scheduler(&scheduler, DEFAULT_QUANTUM, RR, &df);
+	initialize_scheduler(&scheduler, DEFAULT_QUANTUM_MS, RR, &df);
 
 	for (int i = 0; i < 6; i++) {
 		// wait a random amount of time between 0 and 5 seconds

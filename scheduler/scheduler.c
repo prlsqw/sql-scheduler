@@ -6,7 +6,7 @@ void initialize_scheduler(Scheduler *scheduler, time_t quantum,
 	if (scheduler == NULL)
 		return;
 
-	scheduler->quantum = quantum;
+	scheduler->quantum_ms = quantum;
 	switch (algorithm) {
 		case RR:
 			scheduler->algorithm = rr_scheduler;
