@@ -3,9 +3,6 @@
 
 void initialize_scheduler(Scheduler *scheduler, time_t quantum,
 						  SchAlgorithm algorithm, Dataframe *df) {
-	if (scheduler == NULL)
-		return;
-
 	scheduler->quantum_ms = quantum;
 	switch (algorithm) {
 		case RR:
@@ -32,7 +29,8 @@ void initialize_scheduler(Scheduler *scheduler, time_t quantum,
 
 int schedule_query(Scheduler *scheduler, Query *query) {
 	if (scheduler == NULL || query == NULL) {
-		return -1;
+		perror("Either scheduler or query is NULL in schedule_query");
+		exit(EXIT_FAILURE);
 	}
 
 	// create a job for the query
@@ -47,7 +45,9 @@ int schedule_query(Scheduler *scheduler, Query *query) {
 }
 
 void cleanup_scheduler(Scheduler *scheduler) {
-	if (scheduler == NULL)
-		return;
+	if (scheduler == NULL) {
+		perror("Scheduler is NULL before cleanup");
+		exit(EXIT_FAILURE);
+	}
 	cleanup_job_queue(&scheduler->queue);
 }
