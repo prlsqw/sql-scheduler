@@ -26,10 +26,10 @@ typedef struct {
 	time_t quantum_ms;
 
 	// max life; scheduler stops after this time if no new queries arrive
-	time_t max_life;
+	time_t max_life_ms;
 
 	// scheduling algorithm
-	void (*algorithm)(JobQueue *queue, time_t quantum, time_t max_life);
+	void (*algorithm)(JobQueue *queue, time_t quantum, time_t max_life_ms);
 } Scheduler;
 
 // Round Robin, Weighted Round Robin, First In First Out

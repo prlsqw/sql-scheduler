@@ -7,13 +7,13 @@
  *
  * \param queue      pointer to job queue
  * \param quantum    time slice for each job
- * \param max_life   maximum life of the scheduler
+ * \param max_life_ms   maximum life of the scheduler
  */
-void rr_scheduler(JobQueue *queue, time_t quantum, time_t max_life) {
+void rr_scheduler(JobQueue *queue, time_t quantum, time_t max_life_ms) {
 	Job *job;
-	time_t end_time = now() + max_life;
+	time_t end_time = now() + max_life_ms;
 
-	// Run until max_life is reached and all queries are processed
+	// Run until max_life_ms is reached and all queries are processed
 	while ((job = next_job(queue)) != NULL || now() < end_time) {
 		if (job != NULL) {
 			execute(job->df, job->state, quantum);
@@ -34,11 +34,11 @@ void rr_scheduler(JobQueue *queue, time_t quantum, time_t max_life) {
  * \param queue      pointer to job queue
  * \param quantum    max time slice for each job (each job will take a
  * 						certain % of quantum)
- * \param max_life   maximum life of the scheduler
+ * \param max_life_ms   maximum life of the scheduler
  */
-void wrr_scheduler(JobQueue *queue, time_t quantum, time_t max_life) {
+void wrr_scheduler(JobQueue *queue, time_t quantum, time_t max_life_ms) {
 	Job *job;
-	time_t end_time = now() + max_life;
+	time_t end_time = now() + max_life_ms;
 
 	while ((job = next_job(queue)) != NULL || now() < end_time) {
 		// ?? need to implement; right now this does not work.
@@ -50,11 +50,11 @@ void wrr_scheduler(JobQueue *queue, time_t quantum, time_t max_life) {
  *
  * \param queue      pointer to job queue
  * \param quantum    time slice for each job (does not matter for FIFO)
- * \param max_life   maximum life of the scheduler
+ * \param max_life_ms   maximum life of the scheduler
  */
-void fifo_scheduler(JobQueue *queue, time_t quantum, time_t max_life) {
+void fifo_scheduler(JobQueue *queue, time_t quantum, time_t max_life_ms) {
 	Job *job;
-	time_t end_time = now() + max_life;
+	time_t end_time = now() + max_life_ms;
 
 	while ((job = next_job(queue)) != NULL || now() < end_time) {
 		if (job != NULL) {
