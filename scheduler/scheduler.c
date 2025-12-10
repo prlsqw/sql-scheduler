@@ -5,8 +5,8 @@
 /**
  * Round Robin scheduling algorithm
  *
- * \param queue      pointer to job queue
- * \param quantum    time slice for each job
+ * \param queue         pointer to job queue
+ * \param quantum       time slice for each job
  * \param max_life_ms   maximum life of the scheduler
  */
 void rr_scheduler(JobQueue *queue, time_t quantum, time_t max_life_ms) {
@@ -31,8 +31,8 @@ void rr_scheduler(JobQueue *queue, time_t quantum, time_t max_life_ms) {
 /**
  * Weighted Round Robin scheduling algorithm
  *
- * \param queue      pointer to job queue
- * \param quantum    max time slice for each job (each job will take a
+ * \param queue         pointer to job queue
+ * \param quantum       max time slice for each job (each job will take a
  * 						certain % of quantum)
  * \param max_life_ms   maximum life of the scheduler
  */
@@ -48,8 +48,8 @@ void wrr_scheduler(JobQueue *queue, time_t quantum, time_t max_life_ms) {
 /**
  * First In First Out scheduling algorithm
  *
- * \param queue      pointer to job queue
- * \param quantum    time slice for each job (does not matter for FIFO)
+ * \param queue         pointer to job queue
+ * \param quantum       time slice for each job (does not matter for FIFO)
  * \param max_life_ms   maximum life of the scheduler
  */
 void fifo_scheduler(JobQueue *queue, time_t quantum, time_t max_life_ms) {
