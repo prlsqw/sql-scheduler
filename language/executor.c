@@ -1,6 +1,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/stat.h>
 
 #include "headers/executor.h"
 #include "headers/utils.h"
@@ -10,6 +11,33 @@ void initialize(Dataframe *df, const char *file_path) {
 	if (df->file == NULL) {
 		perror("Error opening file");
 		exit(1);
+	}
+
+	// find the inode of the file to associate weights
+	struct stat file_stat;
+	if (fstat(df->file, &file_stat) < 0) {
+		perror("fstat failed");
+		exit(EXIT_FAILURE);
+	}
+
+	ino_t inode = file_stat.st_ino;
+	char weight_file[MAXIMUM_INODE_CHARACTERS + 15];
+	snprintf(weight_file, MAXIMUM_INODE_CHARACTERS + 15, "weights/%lu.weight",
+			 inode);
+
+	// open weight file
+	df->weights = fopen(weight_file, "r+");
+
+	// if file is empty, write default weights
+	if (df->weights == NULL) {
+		df->weights = fopen(weight_file, "w");
+		if (df->weights == NULL) {
+			perror("Failed to create weight file");
+			exit(EXIT_FAILURE);
+		}
+		for (int i = 0; i < 6; i++) {
+			fprintf(df->weights, "0.0\n");
+		}
 	}
 
 	df->num_rows = 1;
@@ -366,6 +394,8 @@ void execute_count(Dataframe *df, ExecutionState *state, time_t timeout) {
 void cleanup(Dataframe *df) {
 	if (df->file != NULL) {
 		fclose(df->file);
+		fclose(df->weights);
 		df->file = NULL;
+		df->weights = NULL;
 	}
 }

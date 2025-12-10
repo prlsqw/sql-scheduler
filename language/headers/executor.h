@@ -18,6 +18,9 @@ typedef struct {
 	// file descriptor for the opened CSV file
 	FILE *file;
 
+	// weights file
+	FILE *weights;
+
 	// df enforces fixed-length cells
 	int cell_length;
 
