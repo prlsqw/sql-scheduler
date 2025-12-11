@@ -31,3 +31,29 @@ double get_operation_quantum(Dataframe *df, Query *query) {
 	// quantum time is scaled linearly based on this weight
 	return weight * DEFAULT_QUANTUM_MS;
 }
+
+
+void update_operation_weight(Dataframe *df, Query *query,
+							 double observed_time) {
+	// skip the first query->operation entries to reach the one we want
+	fseek(df->weights,
+		  // + 2 for: ' ' and '\n' in each line
+		  query->operation * (WEIGHT_TIME_WIDTH + WEIGHT_COUNT_WIDTH + 2),
+		  SEEK_SET);
+
+	// read current time and count
+	double current_time;
+	int current_count;
+	fscanf(df->weights, "%lf %d", &current_time, &current_count);
+
+	// update time and count
+	current_time += observed_time;
+	current_count += 1;
+
+	// seek back to the start of this operation's entry
+	fseek(df->weights,
+		  -1 * (WEIGHT_TIME_WIDTH + WEIGHT_COUNT_WIDTH + 2), SEEK_CUR);
+
+	fprintf(df->weights, "%*lf %*d\n", WEIGHT_TIME_WIDTH, current_time,
+			WEIGHT_COUNT_WIDTH, current_count);
+}
