@@ -15,6 +15,8 @@ scheduler-lib:
 	make language-lib
 	clang -c scheduler/scheduler.c -o scheduler/scheduler.o
 	clang -c scheduler/job_queue.c -o scheduler/job_queue.o
+	clang -c scheduler/secretary.c -o scheduler/secretary.o
+	clang -c scheduler/weights.c -o scheduler/weights.o
 
 gen:
 	nvcc -o dataset-gen gen/dataset-gen.cu language/utils.c
