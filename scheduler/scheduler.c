@@ -1,5 +1,4 @@
 #include "scheduler.h"
-#include "weights.c"
 
 #define REALLY_LARGE_QUANTUM 1000000
 

@@ -1,3 +1,6 @@
+#ifndef SCHEDULER_WEIGHTS_C
+#define SCHEDULER_WEIGHTS_C 1
+
 #include "scheduler.h"
 #include <sys/stat.h>
 
@@ -57,3 +60,5 @@ void update_operation_weight(Dataframe *df, Query *query,
 	fprintf(df->weights, "%*lf %*d\n", WEIGHT_TIME_WIDTH, current_time,
 			WEIGHT_COUNT_WIDTH, current_count);
 }
+
+#endif
