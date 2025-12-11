@@ -1,4 +1,5 @@
 #include "scheduler.h"
+#include "weights.c"
 
 #define REALLY_LARGE_QUANTUM 1000000
 
@@ -41,7 +42,15 @@ void wrr_scheduler(JobQueue *queue, time_t quantum, time_t max_life_ms) {
 	time_t end_time = now() + max_life_ms;
 
 	while ((job = next_job(queue)) != NULL || now() < end_time) {
-		// ?? need to implement; right now this does not work.
+		if (job != NULL) {
+			double wq = get_operation_quantum(job->df, job->df, quantum);
+			execute(job->df, job->state, (time_t)wq);
+
+			// Remove completed jobs from the queue
+			if (job->state->status == COMPLETED) {
+				remove_job_from_queue(queue, job);
+			}
+		}
 	}
 }
 
