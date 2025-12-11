@@ -1,6 +1,5 @@
 
 #include "scheduler.h"
-#include "weights.c"
 
 #include <string.h>
 

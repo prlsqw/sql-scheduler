@@ -1,4 +1,3 @@
-#include "scheduler.c"
 #include "scheduler.h"
 
 void initialize_scheduler(Scheduler *scheduler, time_t quantum,
