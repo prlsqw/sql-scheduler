@@ -1,7 +1,8 @@
 #include "scheduler.h"
 #include <sys/stat.h>
 
-double get_operation_quantum(Dataframe *df, Query *query) {
+double get_operation_quantum(Dataframe *df, Query *query,
+							 double baseline_quantum) {
 	double total_time = 0.0;
 	double time_tally = 0;
 	int count_tally = 0;
@@ -29,9 +30,8 @@ double get_operation_quantum(Dataframe *df, Query *query) {
 	double weight = (this_op_avg + all_ops_avg) / all_ops_avg;
 
 	// quantum time is scaled linearly based on this weight
-	return weight * DEFAULT_QUANTUM_MS;
+	return weight * baseline_quantum;
 }
-
 
 void update_operation_weight(Dataframe *df, Query *query,
 							 double observed_time) {
@@ -51,8 +51,8 @@ void update_operation_weight(Dataframe *df, Query *query,
 	current_count += 1;
 
 	// seek back to the start of this operation's entry
-	fseek(df->weights,
-		  -1 * (WEIGHT_TIME_WIDTH + WEIGHT_COUNT_WIDTH + 2), SEEK_CUR);
+	fseek(df->weights, -1 * (WEIGHT_TIME_WIDTH + WEIGHT_COUNT_WIDTH + 2),
+		  SEEK_CUR);
 
 	fprintf(df->weights, "%*lf %*d\n", WEIGHT_TIME_WIDTH, current_time,
 			WEIGHT_COUNT_WIDTH, current_count);
