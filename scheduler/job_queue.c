@@ -1,5 +1,6 @@
 
 #include "scheduler.h"
+#include "weights.c"
 
 #include <string.h>
 
@@ -78,6 +79,12 @@ void remove_job_from_queue(JobQueue *queue, Job *job) {
 
 	// if iterator is now out of bounds, wrap it around
 	queue->iter = queue->iter == queue->size ? 0 : queue->iter;
+
+	// update weights based on job completion time
+	if (job->state->status == COMPLETED) {
+		update_operation_weight(job->df, job->state->query,
+								job->state->query->time_spent_ms);
+	}
 }
 
 /**
