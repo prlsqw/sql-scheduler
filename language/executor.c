@@ -1,6 +1,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/stat.h>
 
 #include "headers/executor.h"
 #include "headers/utils.h"
@@ -10,6 +11,37 @@ void initialize(Dataframe *df, const char *file_path) {
 	if (df->file == NULL) {
 		perror("Error opening file");
 		exit(1);
+	}
+
+	// find the inode of the file to associate weights
+	struct stat file_stat;
+	if (fstat(fileno(df->file), &file_stat) < 0) {
+		perror("fstat failed");
+		exit(EXIT_FAILURE);
+	}
+
+	ino_t inode = file_stat.st_ino;
+	char weight_file[MAXIMUM_INODE_CHARACTERS + 15];
+	snprintf(weight_file, MAXIMUM_INODE_CHARACTERS + 15, "weights/%llu.weight",
+			 inode);
+
+	// open weight file
+	df->weights = fopen(weight_file, "r+");
+
+	// if file is empty, write default weights
+	if (df->weights == NULL) {
+		df->weights = fopen(weight_file, "w");
+		if (df->weights == NULL) {
+			perror("Failed to create weight file");
+			exit(EXIT_FAILURE);
+		}
+		int N = ARRAY_LEN(QueryOps);
+		for (int i = 0; i < N; i++) {
+			// width align each line to 20 chars for float (time tally),
+			// and 10 chars for int (count)
+			fprintf(df->weights, "%-*lf %-*d\n", WEIGHT_TIME_WIDTH, 0.0,
+					WEIGHT_COUNT_WIDTH, 0);
+		}
 	}
 
 	df->num_rows = 1;
@@ -115,6 +147,7 @@ void execute_average(Dataframe *df, ExecutionState *state, time_t timeout) {
 		state->processed_rows++;
 	}
 
+	state->query->time_spent_ms += (now() - start_time);
 	if (state->processed_rows == df->num_rows - 1) {
 		state->status = COMPLETED;
 	} else {
@@ -172,6 +205,7 @@ void execute_median(Dataframe *df, ExecutionState *state, time_t timeout) {
 		state->processed_rows++;
 	}
 
+	state->query->time_spent_ms += (now() - start_time);
 	if (state->processed_rows != df->num_rows - 1) {
 		// save position in file stream for next call
 		state->stream_position = ftell(df->file);
@@ -229,6 +263,8 @@ void execute_increment(Dataframe *df, ExecutionState *state, time_t timeout) {
 		execute_write_at(df, state, timeout);
 		state->processed_rows++;
 	}
+
+	state->query->time_spent_ms += (now() - start_time);
 	if (state->processed_rows == df->num_rows - 1) {
 		state->status = COMPLETED;
 	} else {
@@ -263,6 +299,8 @@ void execute_write(Dataframe *df, ExecutionState *state, time_t timeout) {
 		execute_write_at(df, state, timeout);
 		state->processed_rows++;
 	}
+
+	state->query->time_spent_ms += (now() - start_time);
 	if (state->processed_rows == df->num_rows - 1) {
 		state->status = COMPLETED;
 	} else {
@@ -280,6 +318,7 @@ void execute_write_at(Dataframe *df, ExecutionState *state, time_t timeout) {
 	double value = state->query->arg2;
 	// local flag to keep track of printing WRITE_AT only when the user calls it
 	int user_called_write_at = 0;
+	time_t start_time = now();
 
 	// housekeeping if call is the first one
 	if (state->status == CREATED) {
@@ -309,6 +348,7 @@ void execute_write_at(Dataframe *df, ExecutionState *state, time_t timeout) {
 		printf("WRITE_AT(%d, %d, %f)\n", column_index, row_index, value);
 		state->status = COMPLETED;
 	}
+	state->query->time_spent_ms += (now() - start_time);
 }
 
 void execute_count(Dataframe *df, ExecutionState *state, time_t timeout) {
@@ -349,6 +389,7 @@ void execute_count(Dataframe *df, ExecutionState *state, time_t timeout) {
 		state->processed_rows++;
 	}
 
+	state->query->time_spent_ms += (now() - start_time);
 	if (state->processed_rows == df->num_rows - 1) {
 		state->status = COMPLETED;
 	} else {
@@ -366,6 +407,8 @@ void execute_count(Dataframe *df, ExecutionState *state, time_t timeout) {
 void cleanup(Dataframe *df) {
 	if (df->file != NULL) {
 		fclose(df->file);
+		fclose(df->weights);
 		df->file = NULL;
+		df->weights = NULL;
 	}
 }

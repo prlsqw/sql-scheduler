@@ -9,12 +9,14 @@ language-lib:
 	clang -c language/utils.c -o language/utils.o
 
 scheduler:
-	clang -o scheduler-test scheduler/tests.c scheduler/scheduler.c scheduler/job_queue.c language/executor.c language/parser.c language/utils.c
+	clang -o scheduler-test scheduler/tests.c scheduler/scheduler.c scheduler/secretary.c scheduler/weights.c scheduler/job_queue.c language/executor.c language/parser.c language/utils.c
 
 scheduler-lib:
 	make language-lib
 	clang -c scheduler/scheduler.c -o scheduler/scheduler.o
 	clang -c scheduler/job_queue.c -o scheduler/job_queue.o
+	clang -c scheduler/secretary.c -o scheduler/secretary.o
+	clang -c scheduler/weights.c -o scheduler/weights.o
 
 gen:
 	nvcc -o dataset-gen gen/dataset-gen.cu language/utils.c

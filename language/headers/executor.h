@@ -8,6 +8,9 @@
 #include <string.h>
 #include <sys/time.h>
 
+#define WEIGHT_TIME_WIDTH 15
+#define WEIGHT_COUNT_WIDTH 10
+
 typedef struct {
 	// number of rows in the dataframe
 	int num_rows;
@@ -17,6 +20,9 @@ typedef struct {
 
 	// file descriptor for the opened CSV file
 	FILE *file;
+
+	// weights file
+	FILE *weights;
 
 	// df enforces fixed-length cells
 	int cell_length;
