@@ -15,14 +15,14 @@ void initialize(Dataframe *df, const char *file_path) {
 
 	// find the inode of the file to associate weights
 	struct stat file_stat;
-	if (fstat(df->file, &file_stat) < 0) {
+	if (fstat(fileno(df->file), &file_stat) < 0) {
 		perror("fstat failed");
 		exit(EXIT_FAILURE);
 	}
 
 	ino_t inode = file_stat.st_ino;
 	char weight_file[MAXIMUM_INODE_CHARACTERS + 15];
-	snprintf(weight_file, MAXIMUM_INODE_CHARACTERS + 15, "weights/%lu.weight",
+	snprintf(weight_file, MAXIMUM_INODE_CHARACTERS + 15, "weights/%llu.weight",
 			 inode);
 
 	// open weight file
@@ -35,8 +35,12 @@ void initialize(Dataframe *df, const char *file_path) {
 			perror("Failed to create weight file");
 			exit(EXIT_FAILURE);
 		}
-		for (int i = 0; i < 6; i++) {
-			fprintf(df->weights, "0.0\n");
+		int N = ARRAY_LEN(QueryOps);
+		for (int i = 0; i < N; i++) {
+			// width align each line to 20 chars for float (time tally),
+			// and 10 chars for int (count)
+			fprintf(df->weights, "%-*lf %-*d\n", WEIGHT_TIME_WIDTH, 0.0,
+					WEIGHT_COUNT_WIDTH, 0);
 		}
 	}
 
@@ -259,7 +263,7 @@ void execute_increment(Dataframe *df, ExecutionState *state, time_t timeout) {
 		execute_write_at(df, state, timeout);
 		state->processed_rows++;
 	}
-	
+
 	state->query->time_spent_ms += (now() - start_time);
 	if (state->processed_rows == df->num_rows - 1) {
 		state->status = COMPLETED;
