@@ -22,8 +22,6 @@ void rr_scheduler(JobQueue *queue, time_t quantum, time_t max_life_ms) {
 			// Remove completed jobs from the queue
 			if (job->state->status == COMPLETED) {
 				remove_job_from_queue(queue, job);
-				free(job->state);
-				free(job);
 			}
 		}
 	}
@@ -74,10 +72,6 @@ void fifo_scheduler(JobQueue *queue, time_t quantum, time_t max_life_ms) {
 
 			// since job is done,
 			remove_job_from_queue(queue, job);
-			// TODO: freeing jobs and job states should be handled by
-			// the job queue when jobs are removed
-			free(job->state);
-			free(job);
 		}
 	}
 }
