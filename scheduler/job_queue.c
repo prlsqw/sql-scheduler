@@ -15,23 +15,8 @@ void initialize_job_queue(JobQueue *queue) {
 	queue->head = NULL;
     queue->tail = NULL;
     queue->curr = NULL;
+	pthread_mutex_init(&queue->lock, NULL);
 }
-
-// /**
-//  * Double the capacity of the current job queue
-//  *
-//  * \param queue  pointer to queue
-//  */
-// void double_job_queue_capacity(JobQueue *queue) {
-// 	int new_capacity = queue->capacity << 1;
-// 	Job **new_jobs = (Job **)malloc(new_capacity * sizeof(Job *));
-
-// 	memcpy(new_jobs, queue->jobs, queue->size * sizeof(Job *));
-// 	free(queue->jobs);
-
-// 	queue->jobs = new_jobs;
-// 	queue->capacity = new_capacity;
-// }
 
 /**
  * Add a job to the queue
@@ -42,12 +27,10 @@ void initialize_job_queue(JobQueue *queue) {
 void add_job_to_queue(JobQueue *queue, Job *job) {
 	JobNode *node = (JobNode *)malloc(sizeof(JobNode));
 
-	// if (queue->size >= queue->capacity) {
-	// 	double_job_queue_capacity(queue);
-	// }
-
 	node->job = job;
     node->next = NULL;
+
+	pthread_mutex_lock(&queue->lock);
 
 	if (queue->tail == NULL) {
         // queue is empty -> head and tail both become this node
@@ -65,6 +48,7 @@ void add_job_to_queue(JobQueue *queue, Job *job) {
     if (queue->curr == NULL) {
         queue->curr = queue->head;
     }
+	pthread_mutex_unlock(&queue->lock);
 }
 
 /**
@@ -74,6 +58,7 @@ void add_job_to_queue(JobQueue *queue, Job *job) {
  * \param job  pointer to the job to be removed
  */
 void remove_job_from_queue(JobQueue *queue, Job *job) {
+	pthread_mutex_lock(&queue->lock);
 	JobNode *prev = NULL;
     JobNode *currJob = queue->head;
 
@@ -118,6 +103,7 @@ void remove_job_from_queue(JobQueue *queue, Job *job) {
         // empty queue -> clear everything
         queue->head = queue->tail = queue->curr = NULL;
     }
+	pthread_mutex_unlock(&queue->lock);
 }
 
 /**
@@ -127,6 +113,7 @@ void remove_job_from_queue(JobQueue *queue, Job *job) {
  * \return       pointer to the next job, or NULL if the queue is empty
  */
 Job *next_job(JobQueue *queue) {
+	pthread_mutex_lock(&queue->lock);
     if (queue->size == 0 || queue->head == NULL) {
         return NULL;
     }
@@ -144,7 +131,7 @@ Job *next_job(JobQueue *queue) {
     } else {
         queue->curr = queue->head;
     }
-
+	pthread_mutex_lock(&queue->lock);
     return job;
 }
 
@@ -163,4 +150,5 @@ void cleanup_job_queue(JobQueue *queue) {
 
     queue->head = queue->tail = queue->curr = NULL;
     queue->size = 0;
+    pthread_mutex_destroy(&queue->lock);
 }

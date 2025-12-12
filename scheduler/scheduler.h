@@ -3,6 +3,7 @@
 
 #include "../language/language.h"
 #include <sys/time.h>
+#include <pthread.h>
 
 #define DEFAULT_QUANTUM_MS 100
 
@@ -30,6 +31,9 @@ typedef struct {
 
 	// scheduling algorithm
 	void (*algorithm)(JobQueue *queue, time_t quantum, time_t max_life_ms);
+
+	// Scheduler thread handler
+	pthread_t thread;
 } Scheduler;
 
 // Round Robin, Weighted Round Robin, First In First Out
@@ -42,5 +46,11 @@ void initialize_scheduler(Scheduler *scheduler, time_t quantum,
 int schedule_query(Scheduler *scheduler, Query *query);
 
 void cleanup_scheduler(Scheduler *scheduler);
+
+/**
+ * Worker Function for Scheduling Scheduler
+ * \param arg      Pointer to scheduler
+ */
+static void *scheduler_thread_main(void *arg);
 
 #endif

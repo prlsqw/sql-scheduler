@@ -1,5 +1,5 @@
 #include "../scheduler.h"
-
+#include <pthread.h>
 // #define INITIAL_JOB_QUEUE_CAPACITY 16
 
 typedef struct{
@@ -12,6 +12,7 @@ typedef struct {
 	JobNode *head;
 	JobNode *tail;
 	JobNode *curr;
+	pthread_mutex_t lock;
 } JobQueue;
 
 /**
