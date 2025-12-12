@@ -12,27 +12,26 @@
  */
 void initialize_job_queue(JobQueue *queue) {
 	queue->size = 0;
-	queue->capacity = INITIAL_JOB_QUEUE_CAPACITY;
-	queue->iter = 0;
-	// TODO: needs to be changed to a linked list implementation
-	queue->jobs = (Job **)malloc(queue->capacity * sizeof(Job *));
+	queue->head = NULL;
+    queue->tail = NULL;
+    queue->curr = NULL;
 }
 
-/**
- * Double the capacity of the current job queue
- *
- * \param queue  pointer to queue
- */
-void double_job_queue_capacity(JobQueue *queue) {
-	int new_capacity = queue->capacity << 1;
-	Job **new_jobs = (Job **)malloc(new_capacity * sizeof(Job *));
+// /**
+//  * Double the capacity of the current job queue
+//  *
+//  * \param queue  pointer to queue
+//  */
+// void double_job_queue_capacity(JobQueue *queue) {
+// 	int new_capacity = queue->capacity << 1;
+// 	Job **new_jobs = (Job **)malloc(new_capacity * sizeof(Job *));
 
-	memcpy(new_jobs, queue->jobs, queue->size * sizeof(Job *));
-	free(queue->jobs);
+// 	memcpy(new_jobs, queue->jobs, queue->size * sizeof(Job *));
+// 	free(queue->jobs);
 
-	queue->jobs = new_jobs;
-	queue->capacity = new_capacity;
-}
+// 	queue->jobs = new_jobs;
+// 	queue->capacity = new_capacity;
+// }
 
 /**
  * Add a job to the queue
@@ -41,12 +40,31 @@ void double_job_queue_capacity(JobQueue *queue) {
  * \param job  pointer to the job to be added
  */
 void add_job_to_queue(JobQueue *queue, Job *job) {
-	if (queue->size >= queue->capacity) {
-		double_job_queue_capacity(queue);
-	}
+	JobNode *node = (JobNode *)malloc(sizeof(JobNode));
 
-	queue->jobs[queue->size] = job;
-	queue->size++;
+	// if (queue->size >= queue->capacity) {
+	// 	double_job_queue_capacity(queue);
+	// }
+
+	node->job = job;
+    node->next = NULL;
+
+	if (queue->tail == NULL) {
+        // queue is empty -> head and tail both become this node
+        queue->head = node;
+        queue->tail = node;
+    } else {
+        // add to the end
+        queue->tail->next = node;
+        queue->tail = node;
+    }
+
+    queue->size++;
+
+    // if curr not set yet, start it at the head
+    if (queue->curr == NULL) {
+        queue->curr = queue->head;
+    }
 }
 
 /**
@@ -56,28 +74,50 @@ void add_job_to_queue(JobQueue *queue, Job *job) {
  * \param job  pointer to the job to be removed
  */
 void remove_job_from_queue(JobQueue *queue, Job *job) {
-	int i = 0;
+	JobNode *prev = NULL;
+    JobNode *currJob = queue->head;
 
-	// find job position in the queue
-	while (i < queue->size && queue->jobs[i] != job) {
-		i++;
-	}
+    // find the node containing this job
+    while (currJob != NULL && currJob->job != job) {
+        prev = currJob;
+        currJob = currJob->next;
+    }
 
-	// if iterator was at the removed job, move it back one position
-	if (queue->iter > i) {
-		queue->iter--;
-	}
+    // job not found
+    if (currJob == NULL) {
+        return;
+    }
 
-	// shift remaining jobs left
-	for (; i < queue->size - 1; i++) {
-		queue->jobs[i] = queue->jobs[i + 1];
-	}
+    // unlink curr from the list
+    if (prev == NULL) {
+        // removing the head
+        queue->head = currJob->next;
+    } else {
+        prev->next = currJob->next;
+    }
 
-	// decrease size
-	queue->size--;
+    if (queue->tail == currJob) {
+        // removing the tail
+        queue->tail = prev;
+    }
 
-	// if iterator is now out of bounds, wrap it around
-	queue->iter = queue->iter == queue->size ? 0 : queue->iter;
+    // fix curr: if curr was pointing at this node,
+    // move it to the next node, or wrap to the new head
+    if (queue->curr == currJob) {
+        if (currJob->next != NULL) {
+            queue->curr = currJob->next;
+        } else {
+            queue->curr = queue->head; // if queue empty
+        }
+    }
+
+    free(currJob);
+    queue->size--;
+
+    if (queue->size == 0) {
+        // empty queue -> clear everything
+        queue->head = queue->tail = queue->curr = NULL;
+    }
 }
 
 /**
@@ -87,13 +127,25 @@ void remove_job_from_queue(JobQueue *queue, Job *job) {
  * \return       pointer to the next job, or NULL if the queue is empty
  */
 Job *next_job(JobQueue *queue) {
-	if (queue->size == 0) {
-		return NULL;
-	}
+    if (queue->size == 0 || queue->head == NULL) {
+        return NULL;
+    }
 
-	Job *job = queue->jobs[queue->iter];
-	queue->iter = (queue->iter + 1) % queue->size;
-	return job;
+    // if curr empty but queue isn't empty, set to head
+    if (queue->curr == NULL) {
+        queue->curr = queue->head;
+    }
+
+    Job *job = queue->curr->job;
+
+    // advance curr -> move to next node or wrap to head
+    if (queue->curr->next != NULL) {
+        queue->curr = queue->curr->next;
+    } else {
+        queue->curr = queue->head;
+    }
+
+    return job;
 }
 
 /**
@@ -102,6 +154,13 @@ Job *next_job(JobQueue *queue) {
  * \param queue  pointer to queue
  */
 void cleanup_job_queue(JobQueue *queue) {
-	// comment to ensure proper formatting
-	free(queue->jobs);
+	JobNode *currJob = queue->head;
+    while (currJob != NULL) {
+        JobNode *next = currJob->next;
+        free(currJob);
+        currJob = next;
+    }
+
+    queue->head = queue->tail = queue->curr = NULL;
+    queue->size = 0;
 }

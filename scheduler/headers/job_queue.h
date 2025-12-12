@@ -1,13 +1,17 @@
 #include "../scheduler.h"
 
-#define INITIAL_JOB_QUEUE_CAPACITY 16
+// #define INITIAL_JOB_QUEUE_CAPACITY 16
+
+typedef struct{
+	Job * job;
+	struct JobNode *next;
+} JobNode;
 
 typedef struct {
 	int size;
-	int capacity;
-	int iter;
-
-	Job **jobs;
+	JobNode *head;
+	JobNode *tail;
+	JobNode *curr;
 } JobQueue;
 
 /**
