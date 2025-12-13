@@ -12,6 +12,7 @@ void parse(char *command, Query *query) {
 	query->column_index = -1;
 	query->arg1 = -1;
 	query->arg2 = -1.0;
+	query->time_spent_ms = 0;
 
 	// sanitize command by removing leading whitespace
 	char *operation = ltrim(command);

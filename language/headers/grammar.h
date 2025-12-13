@@ -61,6 +61,10 @@ typedef struct {
 	// - -1.0
 	// - float (for WRITE_AT, COUNT)
 	double arg2;
+
+	// time spent executing this query in milliseconds
+	// needed for weight updates
+	double time_spent_ms;
 } Query;
 
 // maximum length of a double
