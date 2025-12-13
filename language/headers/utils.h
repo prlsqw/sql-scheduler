@@ -3,6 +3,9 @@
 
 #define ARRAY_LEN(array) sizeof(array) / sizeof(array[0])
 
+// ino_t is uint64_t
+#define MAXIMUM_INODE_CHARACTERS 21
+
 /**
  * Split the given string at the first occurence of the given character
  * by replacing it with a null terminator. Throws an error if the character
