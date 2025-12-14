@@ -1,5 +1,4 @@
 #include "scheduler.h"
-#include "scheduler.c"
 
 void initialize_scheduler(Scheduler *scheduler, time_t quantum,
 						  SchAlgorithm algorithm, Dataframe *df) {

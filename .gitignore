@@ -12,11 +12,18 @@ language-test
 scheduler-test
 dataset-gen
 queries-gen
+logger-test
+orchestrator
 
 
 # ignore data files for now, since might be too big
 data/*.csv
 data/*.queries
 
+
 # ignore local tagged files
 local.*
+
+
+# weight files (inodes) will be different by machine
+weights/*.weight

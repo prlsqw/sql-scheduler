@@ -103,6 +103,13 @@ void remove_job_from_queue(JobQueue *queue, Job *job) {
         // empty queue -> clear everything
         queue->head = queue->tail = queue->curr = NULL;
     }
+	
+
+	// update weights based on job completion time
+	if (job->state->status == COMPLETED) {
+		update_operation_weight(job->df, job->state->query,
+								job->state->query->time_spent_ms);
+	}
 	pthread_mutex_unlock(&queue->lock);
 }
 

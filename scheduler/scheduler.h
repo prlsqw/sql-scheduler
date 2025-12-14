@@ -47,10 +47,23 @@ int schedule_query(Scheduler *scheduler, Query *query);
 
 void cleanup_scheduler(Scheduler *scheduler);
 
+// Weights functions
+double get_operation_quantum(Dataframe *df, Query *query,
+							 double baseline_quantum);
+
+void update_operation_weight(Dataframe *df, Query *query, double observed_time);
+
+// Scheduler algorithms
+void rr_scheduler(JobQueue *queue, time_t quantum, time_t max_life_ms);
+
+void wrr_scheduler(JobQueue *queue, time_t quantum, time_t max_life_ms);
+
+void fifo_scheduler(JobQueue *queue, time_t quantum, time_t max_life_ms);
+
 /**
  * Worker Function for Scheduling Scheduler
  * \param arg      Pointer to scheduler
  */
-static void *scheduler_thread_main(void *arg);
+void *scheduler_thread_main(void *arg);
 
 #endif
