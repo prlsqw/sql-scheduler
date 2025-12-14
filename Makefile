@@ -1,4 +1,4 @@
-.PHONY: language scheduler language-lib scheduler-lib clean format gen
+.PHONY: language scheduler language-lib scheduler-lib logger-lib clean format gen
 
 all:
 	make scheduler-lib
@@ -24,6 +24,12 @@ scheduler-lib:
 	clang -c scheduler/secretary.c -o scheduler/secretary.o
 	clang -c scheduler/weights.c -o scheduler/weights.o
 
+logger-lib:
+	clang -c logger/logger.c -o logger/logger.o
+
+logger-test:
+	clang -o logger-test logger/tests.c logger/logger.c
+
 gen:
 	nvcc -o dataset-gen gen/dataset-gen.cu language/utils.c
 	nvcc -o queries-gen gen/queries-gen.cu language/executor.c language/utils.c
@@ -31,6 +37,8 @@ gen:
 clean:
 	rm -f language-test
 	rm -f scheduler-test
+	rm -f logger-test
+	rm -f test_log.csv
 	rm -f **/*.o
 
 format:
