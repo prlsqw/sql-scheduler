@@ -18,7 +18,7 @@ typedef struct {
 #include "headers/job_queue.h"
 
 // Scheduler def needs to know about JobQueue
-typedef struct {
+typedef struct Scheduler {
 	// queue of jobs to be scheduled
 	JobQueue queue;
 
@@ -31,7 +31,8 @@ typedef struct {
 	time_t max_life_ms;
 
 	// scheduling algorithm
-	void (*algorithm)(JobQueue *queue, time_t quantum, time_t max_life_ms);
+	void (*algorithm)(struct Scheduler *scheduler, time_t quantum,
+					  time_t max_life_ms);
 
 	// Scheduler thread handler
 	pthread_t thread;
@@ -58,11 +59,11 @@ double get_operation_quantum(Dataframe *df, Query *query,
 void update_operation_weight(Dataframe *df, Query *query, double observed_time);
 
 // Scheduler algorithms
-void rr_scheduler(JobQueue *queue, time_t quantum, time_t max_life_ms);
+void rr_scheduler(Scheduler *scheduler, time_t quantum, time_t max_life_ms);
 
-void wrr_scheduler(JobQueue *queue, time_t quantum, time_t max_life_ms);
+void wrr_scheduler(Scheduler *scheduler, time_t quantum, time_t max_life_ms);
 
-void fifo_scheduler(JobQueue *queue, time_t quantum, time_t max_life_ms);
+void fifo_scheduler(Scheduler *scheduler, time_t quantum, time_t max_life_ms);
 
 /**
  * Worker Function for Scheduling Scheduler
