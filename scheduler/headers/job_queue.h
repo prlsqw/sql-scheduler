@@ -3,7 +3,7 @@
 // #define INITIAL_JOB_QUEUE_CAPACITY 16
 
 typedef struct JobNode {
-	Job * job;
+	Job *job;
 	struct JobNode *next;
 } JobNode;
 

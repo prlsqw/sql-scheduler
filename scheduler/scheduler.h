@@ -2,8 +2,8 @@
 #define SCHEDULER_H 1
 
 #include "../language/language.h"
-#include <sys/time.h>
 #include <pthread.h>
+#include <sys/time.h>
 
 #define DEFAULT_QUANTUM_MS 100
 
