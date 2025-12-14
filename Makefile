@@ -41,6 +41,7 @@ clean:
 	rm -f scheduler-test
 	rm -f logger-test
 	rm -f test_log.csv
+	rm -f orchestrator
 	rm -f **/*.o
 
 format:
