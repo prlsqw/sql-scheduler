@@ -1,4 +1,6 @@
 #include "logger.h"
+#include "../language/headers/utils.h"
+#include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -8,6 +10,7 @@ static LogEntry *dummy_head = NULL;
 static LogEntry *curr = NULL;
 static char *filename = NULL;
 bool is_logger_initialized = false;
+static pthread_mutex_t logger_lock = PTHREAD_MUTEX_INITIALIZER;
 
 // initialize logger for the first time
 void log_init(const char *log_filename) {
@@ -46,9 +49,9 @@ static LogEntry *create_entry(int id, LogType type) {
 	}
 
 	// given values
-	entry->timestamp = (long)time(NULL); // current time
-	entry->id = id;						 // job id
-	entry->type = type;					 // type of log
+	entry->timestamp = (long)now(); // current time
+	entry->id = id;					// job id
+	entry->type = type;				// type of log
 
 	// default values
 	entry->description = NULL; // description of log
@@ -68,8 +71,10 @@ static void append_entry(LogEntry *entry) {
 		exit(EXIT_FAILURE);
 	}
 
+	pthread_mutex_lock(&logger_lock);
 	curr->next = entry;
 	curr = entry;
+	pthread_mutex_unlock(&logger_lock);
 }
 
 // log a new job (just received)
