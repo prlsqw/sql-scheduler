@@ -64,7 +64,9 @@ int main(int argc, char **argv) {
 		raw_query = NULL;
 	}
 
-	// save logs to csv and cleanup logger
+	// save logs to csv and cleanup
+	scheduler->running = 0; // stop scheduler (so scheduler thread stops)
+	cleanup_scheduler(scheduler);
 	log_dump_csv();
 	log_destroy();
 }
