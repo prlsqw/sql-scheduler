@@ -9,6 +9,7 @@ typedef struct JobNode {
 
 typedef struct {
 	int size;
+	int total_enqueued;
 	JobNode *head;
 	JobNode *tail;
 	JobNode *curr;

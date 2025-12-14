@@ -11,6 +11,7 @@
 typedef struct {
 	Dataframe *df;
 	ExecutionState *state;
+	int id;
 } Job;
 
 // include at the bottom so it can see Job definition
@@ -34,6 +35,9 @@ typedef struct {
 
 	// Scheduler thread handler
 	pthread_t thread;
+
+	// running flag
+	int running;
 } Scheduler;
 
 // Round Robin, Weighted Round Robin, First In First Out
