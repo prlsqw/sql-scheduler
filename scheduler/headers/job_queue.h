@@ -1,13 +1,18 @@
 #include "../scheduler.h"
+#include <pthread.h>
+// #define INITIAL_JOB_QUEUE_CAPACITY 16
 
-#define INITIAL_JOB_QUEUE_CAPACITY 16
+typedef struct JobNode {
+	Job * job;
+	struct JobNode *next;
+} JobNode;
 
 typedef struct {
 	int size;
-	int capacity;
-	int iter;
-
-	Job **jobs;
+	JobNode *head;
+	JobNode *tail;
+	JobNode *curr;
+	pthread_mutex_t lock;
 } JobQueue;
 
 /**
