@@ -70,6 +70,7 @@ void remove_job_from_queue(JobQueue *queue, Job *job) {
 
     // job not found
     if (currJob == NULL) {
+		pthread_mutex_unlock(&queue->lock);
         return;
     }
 
@@ -96,7 +97,12 @@ void remove_job_from_queue(JobQueue *queue, Job *job) {
         }
     }
 
-    free(currJob);
+    
+	cleanup(currJob->job->df);
+	free(currJob->job->df);
+	free(currJob->job->state);
+	free(currJob->job);
+	free(currJob);
     queue->size--;
 
     if (queue->size == 0) {
