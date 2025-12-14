@@ -31,11 +31,11 @@ int main(int argc, char **argv) {
 	}
 
 	// initialize executor with new dataframe
-	Dataframe *df;
+	Dataframe *df = malloc(sizeof(Dataframe));
 	initialize(df, argv[1]);
 
 	// initialize scheduler with scheduling algorithm & dataframe
-	Scheduler *scheduler;
+	Scheduler *scheduler = malloc(sizeof(Scheduler));
 	initialize_scheduler(scheduler, DEFAULT_QUANTUM_MS, sch_algorithm, df);
 
 	// initialize logger
@@ -61,6 +61,7 @@ int main(int argc, char **argv) {
 		// TODO: log all events inside scheduler
 		schedule_query(scheduler, query);
 		free(raw_query);
+		raw_query = NULL;
 	}
 
 	// save logs to csv and cleanup logger
