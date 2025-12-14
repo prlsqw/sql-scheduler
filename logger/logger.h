@@ -41,7 +41,7 @@ typedef struct LogEntry {
 	struct LogEntry *next;
 } LogEntry;
 
-void log_init();
+void log_init(const char *filename);
 
 void log_receive(int id, const char *description);
 
@@ -51,7 +51,7 @@ void log_stop(int id, bool completed);
 
 void log_result(int id, const char *result);
 
-void log_dump_csv(const char *filename);
+void log_dump_csv();
 
 void log_destroy();
 

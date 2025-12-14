@@ -19,18 +19,19 @@ void initialize_scheduler(Scheduler *scheduler, time_t quantum,
 	}
 
 	scheduler->df = df;
+	scheduler->max_life_ms = 3600000; // scheduler lives for 1 hour
+	scheduler->running = 1;			  // scheduler is running
 	initialize_job_queue(&scheduler->queue);
 
 	// TODO: start the actual scheduler algorithm in a new thread
 	// use pthreads and make sure the actual scheduler runs independent
 	// of this main thread.
-	int rc = pthread_create(&scheduler->thread, NULL,
-                            scheduler_thread_main, scheduler);
-    if (rc != 0) {
-        perror("Failed to create scheduler thread");
-        exit(EXIT_FAILURE);
-    }
-
+	int rc = pthread_create(&scheduler->thread, NULL, scheduler_thread_main,
+							scheduler);
+	if (rc != 0) {
+		perror("Failed to create scheduler thread");
+		exit(EXIT_FAILURE);
+	}
 }
 
 int schedule_query(Scheduler *scheduler, Query *query) {
@@ -41,6 +42,7 @@ int schedule_query(Scheduler *scheduler, Query *query) {
 
 	// create a job for the query
 	Job *job = (Job *)malloc(sizeof(Job));
+	job->id = scheduler->queue.total_enqueued;
 	job->df = scheduler->df;
 	job->state = (ExecutionState *)malloc(sizeof(ExecutionState));
 	job->state->query = query;
@@ -56,6 +58,6 @@ void cleanup_scheduler(Scheduler *scheduler) {
 		exit(EXIT_FAILURE);
 	}
 	// Wait for scheduler thread to finish
-    pthread_join(scheduler->thread, NULL);
+	pthread_join(scheduler->thread, NULL);
 	cleanup_job_queue(&scheduler->queue);
 }

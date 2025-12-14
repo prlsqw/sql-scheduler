@@ -2,9 +2,11 @@
 
 all:
 	make scheduler-lib
+	make logger-lib
 	clang -o orchestrator orchestrator.c \
 		language/executor.o language/parser.o language/utils.o \
-		scheduler/scheduler.o scheduler/job_queue.o scheduler/secretary.o scheduler/weights.o
+		scheduler/scheduler.o scheduler/job_queue.o scheduler/secretary.o scheduler/weights.o \
+		logger/logger.o
 
 language:
 	clang -o language-test language/tests.c language/executor.c language/parser.c language/utils.c
@@ -39,6 +41,7 @@ clean:
 	rm -f scheduler-test
 	rm -f logger-test
 	rm -f test_log.csv
+	rm -f orchestrator
 	rm -f **/*.o
 
 format:

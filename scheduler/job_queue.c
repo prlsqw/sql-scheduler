@@ -1,4 +1,5 @@
 
+#include "../logger/logger.h"
 #include "scheduler.h"
 
 #include <string.h>
@@ -12,9 +13,10 @@
  */
 void initialize_job_queue(JobQueue *queue) {
 	queue->size = 0;
+	queue->total_enqueued = 0;
 	queue->head = NULL;
-    queue->tail = NULL;
-    queue->curr = NULL;
+	queue->tail = NULL;
+	queue->curr = NULL;
 	pthread_mutex_init(&queue->lock, NULL);
 }
 
@@ -25,29 +27,33 @@ void initialize_job_queue(JobQueue *queue) {
  * \param job  pointer to the job to be added
  */
 void add_job_to_queue(JobQueue *queue, Job *job) {
-	JobNode *node = (JobNode *)malloc(sizeof(JobNode));
+	// log job being recieved
+	log_receive(job->id, "Job Recieved");
 
+	JobNode *node = (JobNode *)malloc(sizeof(JobNode));
 	node->job = job;
-    node->next = NULL;
+	node->next = NULL;
 
 	pthread_mutex_lock(&queue->lock);
 
 	if (queue->tail == NULL) {
-        // queue is empty -> head and tail both become this node
-        queue->head = node;
-        queue->tail = node;
-    } else {
-        // add to the end
-        queue->tail->next = node;
-        queue->tail = node;
-    }
+		// queue is empty -> head and tail both become this node
+		queue->head = node;
+		queue->tail = node;
+	} else {
+		// add to the end
+		queue->tail->next = node;
+		queue->tail = node;
+	}
 
-    queue->size++;
+	queue->size++;
+	queue->total_enqueued++; // total number of jobs this queue has seen
 
-    // if curr not set yet, start it at the head
-    if (queue->curr == NULL) {
-        queue->curr = queue->head;
-    }
+	// if curr not set yet, start it at the head
+	if (queue->curr == NULL) {
+		queue->curr = queue->head;
+	}
+
 	pthread_mutex_unlock(&queue->lock);
 }
 
@@ -59,63 +65,63 @@ void add_job_to_queue(JobQueue *queue, Job *job) {
  */
 void remove_job_from_queue(JobQueue *queue, Job *job) {
 	pthread_mutex_lock(&queue->lock);
+
 	JobNode *prev = NULL;
-    JobNode *currJob = queue->head;
+	JobNode *currJob = queue->head;
 
-    // find the node containing this job
-    while (currJob != NULL && currJob->job != job) {
-        prev = currJob;
-        currJob = currJob->next;
-    }
+	// find the node containing this job
+	while (currJob != NULL && currJob->job != job) {
+		prev = currJob;
+		currJob = currJob->next;
+	}
 
-    // job not found
-    if (currJob == NULL) {
+	// job not found
+	if (currJob == NULL) {
 		pthread_mutex_unlock(&queue->lock);
-        return;
-    }
+		return;
+	}
 
-    // unlink curr from the list
-    if (prev == NULL) {
-        // removing the head
-        queue->head = currJob->next;
-    } else {
-        prev->next = currJob->next;
-    }
+	// unlink curr from the list
+	if (prev == NULL) {
+		// removing the head
+		queue->head = currJob->next;
+	} else {
+		prev->next = currJob->next;
+	}
 
-    if (queue->tail == currJob) {
-        // removing the tail
-        queue->tail = prev;
-    }
+	if (queue->tail == currJob) {
+		// removing the tail
+		queue->tail = prev;
+	}
 
-    // fix curr: if curr was pointing at this node,
-    // move it to the next node, or wrap to the new head
-    if (queue->curr == currJob) {
-        if (currJob->next != NULL) {
-            queue->curr = currJob->next;
-        } else {
-            queue->curr = queue->head; // if queue empty
-        }
-    }
+	// fix curr: if curr was pointing at this node,
+	// move it to the next node, or wrap to the new head
+	if (queue->curr == currJob) {
+		if (currJob->next != NULL) {
+			queue->curr = currJob->next;
+		} else {
+			queue->curr = queue->head; // if queue empty
+		}
+	}
 
-    
-	cleanup(currJob->job->df);
-	free(currJob->job->df);
-	free(currJob->job->state);
-	free(currJob->job);
-	free(currJob);
-    queue->size--;
+	queue->size--;
 
-    if (queue->size == 0) {
-        // empty queue -> clear everything
-        queue->head = queue->tail = queue->curr = NULL;
-    }
-	
+	if (queue->size == 0) {
+		// empty queue -> clear everything
+		queue->head = queue->tail = queue->curr = NULL;
+	}
 
 	// update weights based on job completion time
 	if (job->state->status == COMPLETED) {
 		update_operation_weight(job->df, job->state->query,
 								job->state->query->time_spent_ms);
 	}
+
+	// free memory allocated for the job
+	free(currJob->job->state);
+	free(currJob->job);
+	free(currJob);
+
 	pthread_mutex_unlock(&queue->lock);
 }
 
@@ -127,26 +133,26 @@ void remove_job_from_queue(JobQueue *queue, Job *job) {
  */
 Job *next_job(JobQueue *queue) {
 	pthread_mutex_lock(&queue->lock);
-    if (queue->size == 0 || queue->head == NULL) {
+	if (queue->size == 0 || queue->head == NULL) {
 		pthread_mutex_unlock(&queue->lock);
-        return NULL;
-    }
+		return NULL;
+	}
 
-    // if curr empty but queue isn't empty, set to head
-    if (queue->curr == NULL) {
-        queue->curr = queue->head;
-    }
+	// if curr empty but queue isn't empty, set to head
+	if (queue->curr == NULL) {
+		queue->curr = queue->head;
+	}
 
-    Job *job = queue->curr->job;
+	Job *job = queue->curr->job;
 
-    // advance curr -> move to next node or wrap to head
-    if (queue->curr->next != NULL) {
-        queue->curr = queue->curr->next;
-    } else {
-        queue->curr = queue->head;
-    }
+	// advance curr -> move to next node or wrap to head
+	if (queue->curr->next != NULL) {
+		queue->curr = queue->curr->next;
+	} else {
+		queue->curr = queue->head;
+	}
 	pthread_mutex_unlock(&queue->lock);
-    return job;
+	return job;
 }
 
 /**
@@ -156,13 +162,13 @@ Job *next_job(JobQueue *queue) {
  */
 void cleanup_job_queue(JobQueue *queue) {
 	JobNode *currJob = queue->head;
-    while (currJob != NULL) {
-        JobNode *next = currJob->next;
-        free(currJob);
-        currJob = next;
-    }
+	while (currJob != NULL) {
+		JobNode *next = currJob->next;
+		free(currJob);
+		currJob = next;
+	}
 
-    queue->head = queue->tail = queue->curr = NULL;
-    queue->size = 0;
-    pthread_mutex_destroy(&queue->lock);
+	queue->head = queue->tail = queue->curr = NULL;
+	queue->size = 0;
+	pthread_mutex_destroy(&queue->lock);
 }

@@ -1,4 +1,4 @@
-#include "headers/logger.h"
+#include "logger.h"
 #include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -6,7 +6,8 @@
 
 int main() {
 	printf("Initializing logger...\n");
-	log_init();
+	const char *filename = "local.test_log.csv";
+	log_init(filename);
 
 	printf("Logging events...\n");
 	log_receive(1, "Job 1 Description");
@@ -30,12 +31,12 @@ int main() {
 	log_stop(2, false);
 	sleep(1);
 
-	log_dump_csv("test_log.csv");
+	log_dump_csv();
 	log_destroy();
 
-	FILE *fp = fopen("test_log.csv", "r");
+	FILE *fp = fopen(filename, "r");
 	if (!fp) {
-		perror("Failed to open test_log.csv");
+		fprintf(stderr, "Failed to open log file: %s\n", filename);
 		return 1;
 	}
 

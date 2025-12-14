@@ -2,8 +2,8 @@
 #define SCHEDULER_H 1
 
 #include "../language/language.h"
-#include <sys/time.h>
 #include <pthread.h>
+#include <sys/time.h>
 
 #define DEFAULT_QUANTUM_MS 100
 
@@ -11,13 +11,14 @@
 typedef struct {
 	Dataframe *df;
 	ExecutionState *state;
+	int id;
 } Job;
 
 // include at the bottom so it can see Job definition
 #include "headers/job_queue.h"
 
 // Scheduler def needs to know about JobQueue
-typedef struct {
+typedef struct Scheduler {
 	// queue of jobs to be scheduled
 	JobQueue queue;
 
@@ -30,10 +31,14 @@ typedef struct {
 	time_t max_life_ms;
 
 	// scheduling algorithm
-	void (*algorithm)(JobQueue *queue, time_t quantum, time_t max_life_ms);
+	void (*algorithm)(struct Scheduler *scheduler, time_t quantum,
+					  time_t max_life_ms);
 
 	// Scheduler thread handler
 	pthread_t thread;
+
+	// running flag
+	int running;
 } Scheduler;
 
 // Round Robin, Weighted Round Robin, First In First Out
@@ -54,11 +59,11 @@ double get_operation_quantum(Dataframe *df, Query *query,
 void update_operation_weight(Dataframe *df, Query *query, double observed_time);
 
 // Scheduler algorithms
-void rr_scheduler(JobQueue *queue, time_t quantum, time_t max_life_ms);
+void rr_scheduler(Scheduler *scheduler, time_t quantum, time_t max_life_ms);
 
-void wrr_scheduler(JobQueue *queue, time_t quantum, time_t max_life_ms);
+void wrr_scheduler(Scheduler *scheduler, time_t quantum, time_t max_life_ms);
 
-void fifo_scheduler(JobQueue *queue, time_t quantum, time_t max_life_ms);
+void fifo_scheduler(Scheduler *scheduler, time_t quantum, time_t max_life_ms);
 
 /**
  * Worker Function for Scheduling Scheduler
