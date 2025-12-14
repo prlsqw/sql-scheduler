@@ -75,3 +75,18 @@ void fifo_scheduler(JobQueue *queue, time_t quantum, time_t max_life_ms) {
 		}
 	}
 }
+
+/**
+ * Worker Function for Scheduling Scheduler
+ * \param arg      Pointer to scheduler
+ */
+void *scheduler_thread_main(void *arg) {
+    Scheduler *scheduler = (Scheduler *)arg;
+
+    // Run the chosen algorithm until it finishes
+    scheduler->algorithm(&scheduler->queue,
+                         scheduler->quantum_ms,
+                         scheduler->max_life_ms);
+
+    return NULL;
+}
