@@ -19,6 +19,8 @@ void initialize_scheduler(Scheduler *scheduler, time_t quantum,
 	}
 
 	scheduler->df = df;
+	scheduler->max_life_ms = 3600000; // scheduler lives for 1 hour
+	scheduler->running = 1;			  // scheduler is running
 	initialize_job_queue(&scheduler->queue);
 
 	// TODO: start the actual scheduler algorithm in a new thread
@@ -40,6 +42,7 @@ int schedule_query(Scheduler *scheduler, Query *query) {
 
 	// create a job for the query
 	Job *job = (Job *)malloc(sizeof(Job));
+	job->id = scheduler->queue.total_enqueued;
 	job->df = scheduler->df;
 	job->state = (ExecutionState *)malloc(sizeof(ExecutionState));
 	job->state->query = query;
