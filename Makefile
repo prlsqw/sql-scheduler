@@ -21,6 +21,9 @@ scheduler-lib:
 logger-lib:
 	clang -c logger/logger.c -o logger/logger.o
 
+logger-test:
+	clang -o logger-test logger/tests.c logger/logger.c
+
 gen:
 	nvcc -o dataset-gen gen/dataset-gen.cu language/utils.c
 	nvcc -o queries-gen gen/queries-gen.cu language/executor.c language/utils.c
@@ -28,6 +31,8 @@ gen:
 clean:
 	rm -f language-test
 	rm -f scheduler-test
+	rm -f logger-test
+	rm -f test_log.csv
 	rm -f **/*.o
 
 format:
