@@ -4,7 +4,6 @@
 #include "language/language.h"
 #include "scheduler/scheduler.h"
 
-// temp change for draft pr
 int main(int argc, char **argv) {
 
 	if (argc != 3) {
