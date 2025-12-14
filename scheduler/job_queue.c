@@ -128,6 +128,7 @@ void remove_job_from_queue(JobQueue *queue, Job *job) {
 Job *next_job(JobQueue *queue) {
 	pthread_mutex_lock(&queue->lock);
     if (queue->size == 0 || queue->head == NULL) {
+		pthread_mutex_unlock(&queue->lock);
         return NULL;
     }
 
@@ -144,7 +145,7 @@ Job *next_job(JobQueue *queue) {
     } else {
         queue->curr = queue->head;
     }
-	pthread_mutex_lock(&queue->lock);
+	pthread_mutex_unlock(&queue->lock);
     return job;
 }
 
