@@ -1,4 +1,5 @@
 #include "language/language.h"
+#include "logger/logger.h"
 #include "scheduler/scheduler.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -6,8 +7,10 @@
 
 int main(int argc, char **argv) {
 	// raise error if invalid number of args
-	if (argc != 3) {
-		fprintf(stderr, "Usage: %s <data_file.csv> <RR|WRR|FIFO>\n", argv[0]);
+	if (argc != 4) {
+		fprintf(stderr,
+				"Usage: %s <data_file.csv> <RR|WRR|FIFO> <output_log.csv>\n",
+				argv[0]);
 		exit(EXIT_FAILURE);
 	}
 
@@ -27,11 +30,16 @@ int main(int argc, char **argv) {
 		exit(EXIT_FAILURE);
 	}
 
+	// initialize executor with new dataframe
 	Dataframe *df;
 	initialize(df, argv[1]);
 
+	// initialize scheduler with scheduling algorithm & dataframe
 	Scheduler *scheduler;
 	initialize_scheduler(scheduler, DEFAULT_QUANTUM_MS, sch_algorithm, df);
+
+	// initialize logger
+	log_init(argv[3]);
 
 	char *raw_query = NULL;
 	while (1) {
@@ -50,7 +58,12 @@ int main(int argc, char **argv) {
 		parse(raw_query, query);
 
 		// send to scheduler & hope that it deals with freeing query
+		// TODO: log all events inside scheduler
 		schedule_query(scheduler, query);
 		free(raw_query);
 	}
+
+	// save logs to csv and cleanup logger
+	log_dump_csv();
+	log_destroy();
 }
