@@ -6,9 +6,24 @@
 
 static LogEntry *dummy_head = NULL;
 static LogEntry *curr = NULL;
+static char *filename = NULL;
+bool is_logger_initialized = false;
 
 // initialize logger for the first time
-void log_init() {
+void log_init(const char *log_filename) {
+	if (is_logger_initialized) {
+		perror("Logger already initialized");
+		exit(EXIT_FAILURE);
+	}
+
+	// check if output log file can be opened for writing
+	FILE *log_file = fopen(log_filename, "w");
+	if (log_file == NULL) {
+		fprintf(stderr, "Cannot open log file: %s\n", log_filename);
+		exit(EXIT_FAILURE);
+	}
+	fclose(log_file);
+
 	dummy_head = (LogEntry *)malloc(sizeof(LogEntry));
 	if (!dummy_head) {
 		perror("Failed to allocate memory for logger initialization");
@@ -17,6 +32,8 @@ void log_init() {
 
 	dummy_head->next = NULL;
 	curr = dummy_head;
+	filename = strdup(log_filename);
+	is_logger_initialized = true;
 }
 
 // create new log entry
@@ -44,6 +61,13 @@ static LogEntry *create_entry(int id, LogType type) {
 
 // add entry to the logger linked list
 static void append_entry(LogEntry *entry) {
+	// since this function is used by every other logging function, this check
+	// can have a single instance here for all logging functions
+	if (!is_logger_initialized) {
+		perror("Logger not initialized");
+		exit(EXIT_FAILURE);
+	}
+
 	curr->next = entry;
 	curr = entry;
 }
@@ -79,11 +103,16 @@ void log_result(int id, const char *result) {
 	append_entry(entry);
 }
 
-void log_dump_csv(const char *filename) {
+void log_dump_csv() {
+	if (!is_logger_initialized) {
+		perror("Logger not initialized");
+		exit(EXIT_FAILURE);
+	}
+
 	FILE *file = fopen(filename, "w");
 	if (!file) {
-		perror("Failed to open log file for writing");
-		return;
+		fprintf(stderr, "Failed to open log file (%s) for writing\n", filename);
+		exit(EXIT_FAILURE);
 	}
 
 	// write csv header
@@ -174,7 +203,9 @@ void log_destroy() {
 		free(temp);
 	}
 
-	// reset dummy_head and curr pointer
+	// reset dummy_head, curr, filename, and is_logger_initialized
 	dummy_head = NULL;
 	curr = NULL;
+	filename = NULL;
+	is_logger_initialized = false;
 }
