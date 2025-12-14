@@ -2,7 +2,7 @@
 #include <pthread.h>
 // #define INITIAL_JOB_QUEUE_CAPACITY 16
 
-typedef struct{
+typedef struct JobNode {
 	Job * job;
 	struct JobNode *next;
 } JobNode;
