@@ -1,5 +1,11 @@
 .PHONY: language scheduler language-lib scheduler-lib clean format gen
 
+all:
+	make scheduler-lib
+	clang -o orchestrator orchestrator.c \
+		language/executor.o language/parser.o language/utils.o \
+		scheduler/scheduler.o scheduler/job_queue.o scheduler/secretary.o scheduler/weights.o
+
 language:
 	clang -o language-test language/tests.c language/executor.c language/parser.c language/utils.c
 
