@@ -1,4 +1,4 @@
-.PHONY: language scheduler language-lib scheduler-lib clean format gen
+.PHONY: language scheduler language-lib scheduler-lib logger-lib clean format gen
 
 language:
 	clang -o language-test language/tests.c language/executor.c language/parser.c language/utils.c
@@ -17,6 +17,9 @@ scheduler-lib:
 	clang -c scheduler/job_queue.c -o scheduler/job_queue.o
 	clang -c scheduler/secretary.c -o scheduler/secretary.o
 	clang -c scheduler/weights.c -o scheduler/weights.o
+
+logger-lib:
+	clang -c logger/logger.c -o logger/logger.o
 
 gen:
 	nvcc -o dataset-gen gen/dataset-gen.cu language/utils.c
