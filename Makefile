@@ -1,12 +1,25 @@
-.PHONY: language scheduler language-lib scheduler-lib logger-lib clean format gen
+.PHONY: all run language scheduler language-lib scheduler-lib logger-lib clean format gen
+
+INITIAL_SEED = 42
+DATASET_SIZE = 1000000x20x10
+QUERIES_SIZE = 1000
+DATASET_PATH = ./data/set-$(DATASET_SIZE)x$(INITIAL_SEED).csv
+QUERIES_PATH = ./data/qrs-$(QUERIES_SIZE)x$(INITIAL_SEED).queries
 
 all:
+	make gen
 	make scheduler-lib
 	make logger-lib
 	clang -o orchestrator orchestrator.c \
 		language/executor.o language/parser.o language/utils.o \
 		scheduler/scheduler.o scheduler/job_queue.o scheduler/secretary.o scheduler/weights.o \
 		logger/logger.o
+
+run:
+	echo "Build complete. Generating datasets..."
+	./dataset-gen $(DATASET_PATH) $(subst x, ,$(DATASET_SIZE)) $(INITIAL_SEED)
+	./queries-gen $(DATASET_PATH) $(QUERIES_PATH) $(QUERIES_SIZE) $(INITIAL_SEED)
+# 	run python file here
 
 language:
 	clang -o language-test language/tests.c language/executor.c language/parser.c language/utils.c
