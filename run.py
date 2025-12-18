@@ -10,6 +10,9 @@ import sys
 import time
 from collections import defaultdict
 
+import matplotlib.pyplot as plt
+import numpy as np
+
 ORCHESTRATOR_PATH = "orchestrator"
 ALGORITHMS = ["FIFO", "RR", "WRR"]
 ALL_ALGORITHMS = "ALL"
@@ -232,14 +235,6 @@ def _print_results(results: dict[str, dict[str, float]]):
 
 
 def _display_charts(run_name: str, results: dict[str, dict[str, float]]):
-    try:
-        import matplotlib.pyplot as plt
-        import numpy as np
-    except ImportError:
-        print("\n[!] matplotlib or numpy not found. Skipping chart generation.")
-        print("    Install them with: pip install matplotlib numpy")
-        return
-
     print("\nGenerating performance charts...")
 
     # categories to plot
@@ -256,13 +251,13 @@ def _display_charts(run_name: str, results: dict[str, dict[str, float]]):
 
     # Create figure with better styling
     fig = plt.figure(figsize=(18, 10))
-    fig.suptitle('Scheduler Performance Comparison', fontsize=20, fontweight='bold', y=0.98)
+    fig.suptitle("Scheduler Performance Comparison", fontsize=20, fontweight="bold", y=0.98)
     axes = []
     for i in range(6):
-        axes.append(plt.subplot(2, 3, i+1))
-    
+        axes.append(plt.subplot(2, 3, i + 1))
+
     # Set figure background
-    fig.patch.set_facecolor('#f8f9fa')
+    fig.patch.set_facecolor("#f8f9fa")
 
     for i, (title, key) in enumerate(metrics_to_plot):
         ax = axes[i]
@@ -272,37 +267,47 @@ def _display_charts(run_name: str, results: dict[str, dict[str, float]]):
         # max_vals = [results[algo][f"slowest_{key}"] for algo in algos]
 
         # Use gradient colors for visual appeal
-        colors = ['#4e79a7', '#f28e2c', '#e15759']
-        bars = ax.bar(x, avg_vals, width, color=colors[:len(algos)], alpha=0.8, edgecolor='white', linewidth=2)
+        colors = ["#4e79a7", "#f28e2c", "#e15759"]
+        bars = ax.bar(
+            x,
+            avg_vals,
+            width,
+            color=colors[: len(algos)],
+            alpha=0.8,
+            edgecolor="white",
+            linewidth=2,
+        )
 
         # Add value labels with better formatting
-        ax.bar_label(bars, padding=3, fmt='%.2f', fontsize=10, fontweight='bold')
+        ax.bar_label(bars, padding=3, fmt="%.2f", fontsize=10, fontweight="bold")
 
-        ax.set_title(title, fontsize=14, fontweight='bold', pad=10)
+        ax.set_title(title, fontsize=14, fontweight="bold", pad=10)
         ax.set_xticks(x)
-        ax.set_xticklabels(algos, fontsize=11, fontweight='bold')
-        ax.set_ylabel("Milliseconds", fontsize=11, fontweight='bold')
-        ax.grid(axis="y", linestyle="--", alpha=0.3, color='gray')
-        ax.set_facecolor('#ffffff')
-        
+        ax.set_xticklabels(algos, fontsize=11, fontweight="bold")
+        ax.set_ylabel("Milliseconds", fontsize=11, fontweight="bold")
+        ax.grid(axis="y", linestyle="--", alpha=0.3, color="gray")
+        ax.set_facecolor("#ffffff")
+
         # Add subtle spine styling
         for spine in ax.spines.values():
-            spine.set_edgecolor('#cccccc')
+            spine.set_edgecolor("#cccccc")
             spine.set_linewidth(1.5)
 
     # Plot Throughput with enhanced styling
     ax_tp = axes[4]
     tp_vals = [results[algo]["throughput_jobs_sec"] for algo in algos]
-    colors = ['#4e79a7', '#f28e2c', '#e15759']
-    bars_tp = ax_tp.bar(algos, tp_vals, color=colors[:len(algos)], alpha=0.8, edgecolor='white', linewidth=2)
-    ax_tp.bar_label(bars_tp, padding=3, fmt='%.2f', fontsize=10, fontweight='bold')
-    ax_tp.set_title("Throughput", fontsize=14, fontweight='bold', pad=10)
-    ax_tp.set_ylabel("Jobs / Second", fontsize=11, fontweight='bold')
-    ax_tp.set_xlabel("Algorithm", fontsize=11, fontweight='bold')
-    ax_tp.grid(axis="y", linestyle="--", alpha=0.3, color='gray')
-    ax_tp.set_facecolor('#ffffff')
+    colors = ["#4e79a7", "#f28e2c", "#e15759"]
+    bars_tp = ax_tp.bar(
+        algos, tp_vals, color=colors[: len(algos)], alpha=0.8, edgecolor="white", linewidth=2
+    )
+    ax_tp.bar_label(bars_tp, padding=3, fmt="%.2f", fontsize=10, fontweight="bold")
+    ax_tp.set_title("Throughput", fontsize=14, fontweight="bold", pad=10)
+    ax_tp.set_ylabel("Jobs / Second", fontsize=11, fontweight="bold")
+    ax_tp.set_xlabel("Algorithm", fontsize=11, fontweight="bold")
+    ax_tp.grid(axis="y", linestyle="--", alpha=0.3, color="gray")
+    ax_tp.set_facecolor("#ffffff")
     for spine in ax_tp.spines.values():
-        spine.set_edgecolor('#cccccc')
+        spine.set_edgecolor("#cccccc")
         spine.set_linewidth(1.5)
 
     # Hide the empty 6th subplot
