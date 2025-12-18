@@ -23,7 +23,12 @@ data/*.queries
 
 # ignore local tagged files
 local.*
+run/
 
 
 # weight files (inodes) will be different by machine
 weights/*.weight
+
+
+# python cache files
+__pycache__
