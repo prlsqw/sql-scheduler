@@ -17,9 +17,9 @@ all:
 
 run:
 	echo "Build complete. Generating datasets..."
-	./dataset-gen $(DATASET_PATH) $(subst x, ,$(DATASET_SIZE)) $(INITIAL_SEED)
-	./queries-gen $(DATASET_PATH) $(QUERIES_PATH) $(QUERIES_SIZE) $(INITIAL_SEED)
-# 	run python file here
+	./gen/dataset-gen $(DATASET_PATH) $(subst x, ,$(DATASET_SIZE)) $(INITIAL_SEED)
+	./gen/queries-gen $(DATASET_PATH) $(QUERIES_PATH) $(QUERIES_SIZE) $(INITIAL_SEED)
+	python3 run.py $(DATASET_PATH) $(QUERIES_PATH) all
 
 language:
 	clang -o language-test language/tests.c language/executor.c language/parser.c language/utils.c
@@ -46,8 +46,8 @@ logger-test:
 	clang -o logger-test logger/tests.c logger/logger.c
 
 gen:
-	nvcc -o dataset-gen gen/dataset-gen.cu language/utils.c
-	nvcc -o queries-gen gen/queries-gen.cu language/executor.c language/utils.c
+	nvcc -o gen/dataset-gen gen/dataset-gen.cu language/utils.c
+	nvcc -o gen/queries-gen gen/queries-gen.cu language/executor.c language/utils.c
 
 clean:
 	rm -f language-test
