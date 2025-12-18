@@ -211,6 +211,7 @@ void execute_median(Dataframe *df, ExecutionState *state, time_t timeout) {
 		state->stream_position = ftell(df->file);
 
 		// swap context
+		// TODO: should free state->values?
 		return;
 	}
 
