@@ -16,7 +16,7 @@ import numpy as np
 ORCHESTRATOR_PATH = "orchestrator"
 ALGORITHMS = ["FIFO", "RR", "WRR"]
 ALL_ALGORITHMS = "ALL"
-OUTPUT_DIR = "run"
+OUTPUT_DIR = "logs"
 
 
 def generate_run_name():

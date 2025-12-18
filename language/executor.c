@@ -23,7 +23,7 @@ void initialize(Dataframe *df, const char *file_path) {
 	ino_t inode = file_stat.st_ino;
 	char weight_file[MAXIMUM_INODE_CHARACTERS + 15];
 	snprintf(weight_file, MAXIMUM_INODE_CHARACTERS + 15, "weights/%llu.weight",
-			 inode);
+			 (unsigned long long)inode);
 
 	// open weight file
 	df->weights = fopen(weight_file, "r+");
