@@ -1,5 +1,13 @@
 #include "scheduler.h"
 
+/**
+ * Initializes scheduler.
+ * 
+ * \param scheduler	Pointer to scheduler
+ * \param quantum		Time quantum for Round-Robin style scheduling algorithms
+ * \param algorithm	Specific algorithm for scheduler to run
+ * \param df				Dataframe to run queries on
+ */
 void initialize_scheduler(Scheduler *scheduler, time_t quantum,
 						  SchAlgorithm algorithm, Dataframe *df) {
 	scheduler->quantum_ms = quantum;
@@ -34,7 +42,14 @@ void initialize_scheduler(Scheduler *scheduler, time_t quantum,
 	}
 }
 
-int schedule_query(Scheduler *scheduler, Query *query) {
+/**
+ * Adds query to scheduler's job queue.
+ * 
+ * \param scheduler	Pointer to scheduler.
+ * \param query			Pointer to query
+ * \return 0 if success.
+ */
+void schedule_query(Scheduler *scheduler, Query *query) {
 	if (scheduler == NULL || query == NULL) {
 		perror("Either scheduler or query is NULL in schedule_query");
 		exit(EXIT_FAILURE);
@@ -49,9 +64,13 @@ int schedule_query(Scheduler *scheduler, Query *query) {
 	job->state->status = CREATED;
 
 	add_job_to_queue(&scheduler->queue, job);
-	return 0;
 }
 
+/**
+ * Cleans up scheduler.
+ * 
+ * \param scheduler Pointer to scheduler
+ */
 void cleanup_scheduler(Scheduler *scheduler) {
 	if (scheduler == NULL) {
 		perror("Scheduler is NULL before cleanup");
