@@ -21,6 +21,9 @@ run:
 	./gen/queries-gen $(DATASET_PATH) $(QUERIES_PATH) $(QUERIES_SIZE) $(INITIAL_SEED)
 	python3 run.py $(DATASET_PATH) $(QUERIES_PATH) ALL
 
+demo:
+	./orchestrator data/set-10000x20x10x42.csv WRR logs/log.csv
+
 language:
 	clang -o language-test language/tests.c language/executor.c language/parser.c language/utils.c
 
