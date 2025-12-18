@@ -1,6 +1,6 @@
 #include "grammar.h"
 
-void parse(char *command, Query *query);
+int parse(char *command, Query *query);
 
 void determine_operation(char *operation_str, Query *query);
 

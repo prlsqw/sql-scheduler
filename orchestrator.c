@@ -55,7 +55,10 @@ int main(int argc, char **argv) {
 
 		// process the query
 		Query *query = malloc(sizeof(Query));
-		parse(raw_query, query);
+		if (parse(raw_query, query) == -1) {
+			free(raw_query);
+			continue;
+		}
 
 		// send to scheduler & hope that it deals with freeing query
 		// TODO: log all events inside scheduler
