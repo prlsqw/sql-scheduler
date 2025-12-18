@@ -43,6 +43,7 @@ int main(int argc, char **argv) {
 
 	char *raw_query = NULL;
 	while (1) {
+		// TODO: figure out a way to not overwrite input field with executor result
 		printf(">>> ");
 
 		size_t len = 0;

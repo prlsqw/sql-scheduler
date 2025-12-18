@@ -5,6 +5,7 @@
 #include "headers/executor.h"
 #include "headers/utils.h"
 
+// TODO: should doc strings be in header or with the function?
 /**
  * Split the given string at the first occurence of the given character
  * by replacing it with a null terminator. Throws an error if the character

@@ -8,6 +8,10 @@
 #include "headers/utils.h"
 
 /**
+ * Populates query object with parsed command data.
+ * 
+ * \param	command	String containing command to parse
+ * \param query		Query to populate.
  * \return -1 if error, 0 if success.
  */
 int parse(char *command, Query *query) {
@@ -93,7 +97,7 @@ int parse(char *command, Query *query) {
 
 		if (query->operation == COUNT) {
 			// arg1_str is a comparison operator, store as char
-			determine_comparison_operator(arg1_str, query);
+			if (determine_comparison_operator(arg1_str, query) == -1) return -1;
 		} else {
 			// arg1_str is an integer (row index for WRITE_AT)
 			query->arg1 = atoi(arg1_str);
@@ -104,6 +108,12 @@ int parse(char *command, Query *query) {
 	return 0;
 }
 
+/**
+ * Populates query object with determined operation type.
+ * 
+ * \param operation_str	String containing operation type.
+ * \param query					Query to populate.
+ */
 void determine_operation(char *operation_str, Query *query) {
 	if (strcmp(operation_str, "AVERAGE") == 0) {
 		query->operation = AVERAGE;
@@ -120,11 +130,24 @@ void determine_operation(char *operation_str, Query *query) {
 	}
 }
 
+/**
+ * Populates query object with determined column index.
+ * 
+ * \param column_name	String containing column name.
+ * \param query				Query to populate.
+ */
 void determine_column_index(char *column_name, Query *query) {
 	query->column_index = atoi(column_name);
 }
 
-void determine_comparison_operator(char *comp_str, Query *query) {
+/**
+ * Populates query object with determined comparison operator.
+ * 
+ * \param column_name	String containing comparison operator.
+ * \param query				Query to populate.
+ * \return -1 if error, 0 if success.
+ */
+int determine_comparison_operator(char *comp_str, Query *query) {
 	if (strcmp(comp_str, "<") == 0) {
 		query->arg1 = '<';
 	} else if (strcmp(comp_str, "<=") == 0) {
@@ -139,6 +162,6 @@ void determine_comparison_operator(char *comp_str, Query *query) {
 		query->arg1 = '>';
 	} else {
 		perror("Parse Error: Unknown comparison operator");
-		exit(1);
+		return -1;
 	}
 }
