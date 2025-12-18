@@ -7,8 +7,8 @@ double get_operation_quantum(Dataframe *df, Query *query,
 	double time_tally = 0;
 	int count_tally = 0;
 
-	// rewind the file to start reading from the beginning
-	rewind(df->weights);
+	// fseek the file to start reading from the beginning
+	fseek(df->weights, 0, SEEK_SET);
 
 	// read all weights to calculate total time
 	int N = ARRAY_LEN(QueryOps);
