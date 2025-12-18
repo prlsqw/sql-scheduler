@@ -23,6 +23,7 @@ data/*.queries
 
 # ignore local tagged files
 local.*
+run/
 
 
 # weight files (inodes) will be different by machine
