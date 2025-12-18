@@ -249,14 +249,14 @@ def _display_charts(run_name: str, results: dict[str, dict[str, float]]):
     x = np.arange(len(algos))
     width = 0.6  # wider bars since we're only showing averages
 
-    # Create figure with better styling
+    # create figure with better styling
     fig = plt.figure(figsize=(18, 10))
     fig.suptitle("Scheduler Performance Comparison", fontsize=20, fontweight="bold", y=0.98)
     axes = []
     for i in range(6):
         axes.append(plt.subplot(2, 3, i + 1))
 
-    # Set figure background
+    # set figure background
     fig.patch.set_facecolor("#f8f9fa")
 
     for i, (title, key) in enumerate(metrics_to_plot):
@@ -266,7 +266,6 @@ def _display_charts(run_name: str, results: dict[str, dict[str, float]]):
         # min_vals = [results[algo][f"fastest_{key}"] for algo in algos]
         # max_vals = [results[algo][f"slowest_{key}"] for algo in algos]
 
-        # Use gradient colors for visual appeal
         colors = ["#4e79a7", "#f28e2c", "#e15759"]
         bars = ax.bar(
             x,
@@ -278,7 +277,6 @@ def _display_charts(run_name: str, results: dict[str, dict[str, float]]):
             linewidth=2,
         )
 
-        # Add value labels with better formatting
         ax.bar_label(bars, padding=3, fmt="%.2f", fontsize=10, fontweight="bold")
 
         ax.set_title(title, fontsize=14, fontweight="bold", pad=10)
@@ -288,12 +286,10 @@ def _display_charts(run_name: str, results: dict[str, dict[str, float]]):
         ax.grid(axis="y", linestyle="--", alpha=0.3, color="gray")
         ax.set_facecolor("#ffffff")
 
-        # Add subtle spine styling
         for spine in ax.spines.values():
             spine.set_edgecolor("#cccccc")
             spine.set_linewidth(1.5)
 
-    # Plot Throughput with enhanced styling
     ax_tp = axes[4]
     tp_vals = [results[algo]["throughput_jobs_sec"] for algo in algos]
     colors = ["#4e79a7", "#f28e2c", "#e15759"]
@@ -346,8 +342,6 @@ def run_benchmark(run_name: str, data_file: str, queries_file: str, algorithm: s
 
 # 2. run C orchestrator in a subprocess
 def feeder():
-    delay = 0.1  # delay of 1/10th second
-
     for line in sys.stdin:
         sys.stdout.write(line)
         sys.stdout.flush()
@@ -355,7 +349,7 @@ def feeder():
         if line.strip() == ":quit":
             break
 
-        time.sleep(delay)
+        time.sleep(random.uniform(0.01, 1))  # delay 0.01 to 1 second
 
 
 if __name__ == "__main__":
