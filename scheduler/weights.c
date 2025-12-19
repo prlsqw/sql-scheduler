@@ -1,6 +1,14 @@
 #include "scheduler.h"
 #include <sys/stat.h>
 
+/**
+ * Estimates optimal weighted quantum for a query on a dataframe
+ * 
+ * \param df								Pointer to dataframe
+ * \param query							Pointer to query
+ * \param baseline_quantum	Baseline time for a quantum
+ * \return Estimated weighted quantum
+ */
 double get_operation_quantum(Dataframe *df, Query *query,
 							 double baseline_quantum) {
 	double total_time = 0.0;
@@ -40,6 +48,13 @@ double get_operation_quantum(Dataframe *df, Query *query,
 	return weight * baseline_quantum;
 }
 
+/**
+ * Updates data used in weight estimation based on observed query metrics
+ * 
+ * \param df						Pointer to dataframe
+ * \param query					Pointer to query
+ * \param observed_time	The amount of time it took the query to run on the dataframe
+ */
 void update_operation_weight(Dataframe *df, Query *query,
 							 double observed_time) {
 	// skip the first query->operation entries to reach the one we want

@@ -43,6 +43,7 @@ int main(int argc, char **argv) {
 
 	char *raw_query = NULL;
 	while (1) {
+		// TODO: figure out a way to not overwrite input field with executor result
 		printf(">>> ");
 
 		size_t len = 0;
@@ -55,7 +56,10 @@ int main(int argc, char **argv) {
 
 		// process the query
 		Query *query = malloc(sizeof(Query));
-		parse(raw_query, query);
+		if (parse(raw_query, query) == -1) {
+			free(raw_query);
+			continue;
+		}
 
 		// send to scheduler & hope that it deals with freeing query
 		// TODO: log all events inside scheduler

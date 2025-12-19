@@ -12,7 +12,11 @@ static char *filename = NULL;
 bool is_logger_initialized = false;
 static pthread_mutex_t logger_lock = PTHREAD_MUTEX_INITIALIZER;
 
-// initialize logger for the first time
+/**
+ * Initializes logger for the first time.
+ * 
+ * \param log_filename	Filename for output log
+ */
 void log_init(const char *log_filename) {
 	if (is_logger_initialized) {
 		perror("Logger already initialized");
@@ -39,7 +43,13 @@ void log_init(const char *log_filename) {
 	is_logger_initialized = true;
 }
 
-// create new log entry
+/**
+ * Creates new log entry
+ * 
+ * \param id		ID for job
+ * \param type	Log type for entry
+ * \return	Heap-allocated LogEntry object.
+ */
 static LogEntry *create_entry(int id, LogType type) {
 	// space for new entry
 	LogEntry *entry = (LogEntry *)malloc(sizeof(LogEntry));
@@ -62,7 +72,11 @@ static LogEntry *create_entry(int id, LogType type) {
 	return entry;
 }
 
-// add entry to the logger linked list
+/**
+ * Adds entry to the logger linked list
+ * 
+ * \param entry	Populated, heap-allocated LogEntry object
+ */
 static void append_entry(LogEntry *entry) {
 	// since this function is used by every other logging function, this check
 	// can have a single instance here for all logging functions
@@ -77,7 +91,12 @@ static void append_entry(LogEntry *entry) {
 	pthread_mutex_unlock(&logger_lock);
 }
 
-// log a new job (just received)
+/**
+ * Logs a new job as just received.
+ * 
+ * \param id					ID of job
+ * \param	description	Description of entry
+ */
 void log_receive(int id, const char *description) {
 	LogEntry *entry = create_entry(id, LOG_RECEIVE);
 	if (description) {
@@ -86,20 +105,34 @@ void log_receive(int id, const char *description) {
 	append_entry(entry);
 }
 
-// log when job starts execution
+/**
+ * Logs when job starts execution
+ * 
+ * \param id					ID of job
+ */
 void log_start(int id) {
 	LogEntry *entry = create_entry(id, LOG_START);
 	append_entry(entry);
 }
 
-// log when job stops execution
+/**
+ * Logs when job stops execution
+ * 
+ * \param id				ID of job
+ * \param	completed	If job is completed or not
+ */
 void log_stop(int id, bool completed) {
 	LogEntry *entry = create_entry(id, LOG_STOP);
 	entry->completed = completed;
 	append_entry(entry);
 }
 
-// log final result of job
+/**
+ * Logs final result of job
+ * 
+ * \param id			ID of job
+ * \param	result	Result of job
+ */
 void log_result(int id, const char *result) {
 	LogEntry *entry = create_entry(id, LOG_RESULT);
 	if (result) {
@@ -108,6 +141,9 @@ void log_result(int id, const char *result) {
 	append_entry(entry);
 }
 
+/**
+ * Dumps current logs into CSV file.
+ */
 void log_dump_csv() {
 	if (!is_logger_initialized) {
 		perror("Logger not initialized");
@@ -192,6 +228,9 @@ void log_dump_csv() {
 	fclose(file);
 }
 
+/**
+ * Cleans up all logs.
+ */
 void log_destroy() {
 	LogEntry *current = dummy_head;
 

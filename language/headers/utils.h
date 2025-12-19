@@ -11,11 +11,11 @@
  * by replacing it with a null terminator. Throws an error if the character
  * is not found
  *
- * \param str      string to split
+ * \param str_p      pointer to string to split
  * \param split_at character at which to split
- * \return         pointer to the character after the split character,
+ * \return         -1 if error, 0 if success. Modifies str on success.
  */
-char *split(char *str, char split_at);
+int split(char **str_p, char split_at);
 
 /**
  * Remove leading whitespace from the given string by returning a pointer to

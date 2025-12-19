@@ -7,7 +7,14 @@
 #include "headers/parser.h"
 #include "headers/utils.h"
 
-void parse(char *command, Query *query) {
+/**
+ * Populates query object with parsed command data.
+ * 
+ * \param	command	String containing command to parse
+ * \param query		Query to populate.
+ * \return -1 if error, 0 if success.
+ */
+int parse(char *command, Query *query) {
 	query->operation = NONE;
 	query->column_index = -1;
 	query->arg1 = -1;
@@ -18,7 +25,12 @@ void parse(char *command, Query *query) {
 	char *operation = ltrim(command);
 
 	// determine operation by splitting at '('
-	char *column_name = ltrim(split(operation, '('));
+	char *col_name_p = operation;
+	if (split(&col_name_p, '(') == -1) {
+		return -1;
+	}
+
+	char *column_name = ltrim(col_name_p);
 
 	// remove trailing whitespace from operation
 	rtrim(operation);
@@ -27,51 +39,81 @@ void parse(char *command, Query *query) {
 	determine_operation(operation, query);
 	if (query->operation == NONE) {
 		perror("Parse Error: Unknown operation");
-		exit(1);
+		return -1;
 	}
 
 	// if operation is AVERAGE or MEDIAN, column_name is terminated at ')'
 	if (query->operation == AVERAGE || query->operation == MEDIAN) {
-		split(column_name, ')');
+		// remove trailing ')'
+		char *trail_p = column_name;
+		if (split(&trail_p, ')') == -1) {
+			return -1;
+		}
 		rtrim(column_name);
 
 		determine_column_index(column_name, query);
 	} else {
 		// column_name is terminated at ','
-		char *arg1_str = ltrim(split(column_name, ','));
+		char *arg1_p = column_name;
+		if (split(&arg1_p, ',') == -1) {
+			perror("Parse Error: Expected extra argument");
+			return -1;
+		}
+
+		char *arg1_str = ltrim(arg1_p);
 		rtrim(column_name);
 
 		if (query->operation == INCREMENT || query->operation == WRITE) {
-			// arg1_str is terminated at ')'
-			split(arg1_str, ')');
+			// arg1_str is terminated at ')', remove trailing ')'
+			char *trail_p = arg1_str;
+			if (split(&trail_p, ')') == -1) {
+				return -1;
+			}
 			rtrim(arg1_str);
 
 			determine_column_index(column_name, query);
 			query->arg1 = atof(arg1_str);
-			return;
+			return 0;
 		}
-
+		
+		// assumed to be WRITE_AT or COUNT
 		// arg1_str is terminated at ','
-		char *arg2_str = ltrim(split(arg1_str, ','));
+		char *arg2_p = arg1_str;
+		if (split(&arg2_p, ',') == -1) {
+			perror("Parse Error: Expected extra argument");
+			return -1;
+		}
+		char *arg2_str = ltrim(arg2_p);
 		rtrim(arg1_str);
 
-		// arg2_str is terminated at ')'
-		split(arg2_str, ')');
+		// arg2_str is terminated at ')', remove trailing ')'
+		char *trail_p = arg2_str;
+			if (split(&trail_p, ')') == -1) {
+				return -1;
+			}
 		rtrim(arg2_str);
 
 		determine_column_index(column_name, query);
 
 		if (query->operation == COUNT) {
 			// arg1_str is a comparison operator, store as char
-			determine_comparison_operator(arg1_str, query);
+			if (determine_comparison_operator(arg1_str, query) == -1) return -1;
 		} else {
 			// arg1_str is an integer (row index for WRITE_AT)
 			query->arg1 = atoi(arg1_str);
 		}
 		query->arg2 = atof(arg2_str);
 	}
+
+	return 0;
 }
 
+/**
+ * Populates query object with determined operation type.
+ * 
+ * \param operation_str	String containing operation type.
+ * \param query					Query to populate.
+ */
 void determine_operation(char *operation_str, Query *query) {
 	if (strcmp(operation_str, "AVERAGE") == 0) {
 		query->operation = AVERAGE;
@@ -88,11 +130,24 @@ void determine_operation(char *operation_str, Query *query) {
 	}
 }
 
+/**
+ * Populates query object with determined column index.
+ * 
+ * \param column_name	String containing column name.
+ * \param query				Query to populate.
+ */
 void determine_column_index(char *column_name, Query *query) {
 	query->column_index = atoi(column_name);
 }
 
-void determine_comparison_operator(char *comp_str, Query *query) {
+/**
+ * Populates query object with determined comparison operator.
+ * 
+ * \param column_name	String containing comparison operator.
+ * \param query				Query to populate.
+ * \return -1 if error, 0 if success.
+ */
+int determine_comparison_operator(char *comp_str, Query *query) {
 	if (strcmp(comp_str, "<") == 0) {
 		query->arg1 = '<';
 	} else if (strcmp(comp_str, "<=") == 0) {
@@ -107,6 +162,6 @@ void determine_comparison_operator(char *comp_str, Query *query) {
 		query->arg1 = '>';
 	} else {
 		perror("Parse Error: Unknown comparison operator");
-		exit(1);
+		return -1;
 	}
 }

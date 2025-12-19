@@ -5,28 +5,31 @@
 #include "headers/executor.h"
 #include "headers/utils.h"
 
+// TODO: should doc strings be in header or with the function?
 /**
  * Split the given string at the first occurence of the given character
  * by replacing it with a null terminator. Throws an error if the character
  * is not found
  *
- * \param str      string to split
+ * \param str_p      pointer to string to split
  * \param split_at character at which to split
- * \return         pointer to the character after the split character,
+ * \return         -1 if error, 0 if success. Modifies str on success.
  */
-char *split(char *str, char split_at) {
+int split(char **str_p, char split_at) {
 	int i = 0;
+	char* str = *str_p;
 	while (str[i] != split_at && str[i] != '\0') {
 		i++;
 	}
 
 	if (str[i] == '\0') {
 		perror("Split Error: Character not found in string");
-		exit(1);
+		return -1;
 	}
 
 	str[i] = '\0';
-	return str + i + 1;
+	*str_p = str + i + 1;
+	return 0;
 }
 
 /**
