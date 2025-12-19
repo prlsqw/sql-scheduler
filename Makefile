@@ -22,7 +22,7 @@ run:
 	python3 run.py $(DATASET_PATH) $(QUERIES_PATH) ALL
 
 demo:
-	./orchestrator data/set-10000x20x10x42.csv WRR logs/log.csv
+	./orchestrator $(DATASET_PATH) WRR logs/wrr-run-$(INITIAL_SEED).csv
 
 language:
 	clang -o language-test language/tests.c language/executor.c language/parser.c language/utils.c
